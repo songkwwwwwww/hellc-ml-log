@@ -44,16 +44,18 @@ CPU Caches:
   L1 Data 64 KiB
   L1 Instruction 128 KiB
   L2 Unified 4096 KiB (x10)
-Load Average: 2.12, 1.51, 1.44
--------------------------------------------------------------------------------------
-Benchmark                           Time             CPU   Iterations UserCounters...
--------------------------------------------------------------------------------------
-BM_Matmul/Naive/2048            16460 ms        16460 ms            1 GFLOPS=1.04375G/s
-BM_Matmul/LoopReorder/2048       1024 ms         1024 ms            1 GFLOPS=16.7854G/s
-BM_Matmul/Tiled/2048             1148 ms         1148 ms            1 GFLOPS=14.9613G/s
-BM_Matmul/SIMD/2048              1298 ms         1298 ms            1 GFLOPS=13.2333G/s
-BM_Matmul/CacheAware/2048        2623 ms         2623 ms            1 GFLOPS=6.54945G/s
-BM_Matmul/OmpThread/2048          481 ms          465 ms            2 GFLOPS=36.9407G/s
-BM_Matmul/Packed/2048             952 ms          952 ms            1 GFLOPS=18.0517G/s
-BM_Matmul/Reference/2048         42.2 ms         42.2 ms           17 GFLOPS=407.4G/s
+Load Average: 2.49, 2.51, 2.23
+------------------------------------------------------------------------------------------------
+Benchmark                                      Time             CPU   Iterations UserCounters...
+------------------------------------------------------------------------------------------------
+BenchmarkMatmul/Naive/2048                 21272 ms        21214 ms            1 GFLOPS=809.848M/s
+BenchmarkMatmul/NaiveRegisterAcc/2048      16651 ms        16640 ms            1 GFLOPS=1.03247G/s
+BenchmarkMatmul/LoopReorder/2048            1059 ms         1058 ms            1 GFLOPS=16.2344G/s
+BenchmarkMatmul/Tiled1D/2048                1036 ms         1035 ms            1 GFLOPS=16.5933G/s
+BenchmarkMatmul/TiledMD/2048                1162 ms         1162 ms            1 GFLOPS=14.7893G/s
+BenchmarkMatmul/SIMD/2048                   1303 ms         1303 ms            1 GFLOPS=13.1883G/s
+BenchmarkMatmul/CacheAware/2048             2644 ms         2644 ms            1 GFLOPS=6.49818G/s
+BenchmarkMatmul/OmpThread/2048               311 ms          299 ms            3 GFLOPS=57.479G/s
+BenchmarkMatmul/Packed/2048                  965 ms          965 ms            1 GFLOPS=17.8089G/s
+BenchmarkMatmul/Reference/2048              42.3 ms         42.2 ms           17 GFLOPS=406.871G/s
 ```

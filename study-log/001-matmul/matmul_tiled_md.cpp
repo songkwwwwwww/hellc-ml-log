@@ -20,8 +20,8 @@ namespace matmul {
  * Note: TILE_SIZE should ideally be tuned based on the target machine's L1/L2
  * cache size.
  */
-void Tiled(const double *A, const double *B, double *C, int rows, int columns,
-           int inners) {
+void TiledMD(const double *A, const double *B, double *C, int rows, int columns,
+             int inners) {
   // A typical tile size that balances L1/L2 cache utilization on modern CPUs.
   const int kTileSize = 512;
 

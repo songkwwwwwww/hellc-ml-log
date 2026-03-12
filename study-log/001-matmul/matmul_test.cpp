@@ -60,8 +60,13 @@ TEST_F(MatmulTest, LoopReorderCorrectness) {
   EXPECT_TRUE(VerifyResults(C, refC, rows * columns));
 }
 
-TEST_F(MatmulTest, TiledCorrectness) {
-  Tiled(A, B, C, rows, columns, inners);
+TEST_F(MatmulTest, Tiled1DCorrectness) {
+  Tiled1D(A, B, C, rows, columns, inners);
+  EXPECT_TRUE(VerifyResults(C, refC, rows * columns));
+}
+
+TEST_F(MatmulTest, TiledMDCorrectness) {
+  TiledMD(A, B, C, rows, columns, inners);
   EXPECT_TRUE(VerifyResults(C, refC, rows * columns));
 }
 

@@ -12,7 +12,8 @@ cc_library(
         "matmul_packed.cpp",
         "matmul_reference.cpp",
         "matmul_simd.cpp",
-        "matmul_tiled.cpp",
+        "matmul_tiled_1d.cpp",
+        "matmul_tiled_md.cpp",
         "matrix_utils.cpp",
     ],
     hdrs = [
