@@ -29,8 +29,8 @@ void Reference(const double *A, const double *B, double *C, int rows,
   // - lda, ldb, ldc: Leading dimensions. For row-major, this is the number of
   // columns.
   // - beta: 0.0 (Do not add the previous values of C)
-  cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, rows, columns,
-              inners, 1.0, A, inners, B, columns, 0.0, C, columns);
+  cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, rows, columns, inners,
+              1.0, A, inners, B, columns, 0.0, C, columns);
 }
 
 } // namespace matmul

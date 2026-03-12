@@ -76,8 +76,8 @@ void PackB(double *__restrict__ dest, const double *__restrict__ src,
 /**
  * @brief Tiled & Packed Matmul (Row-Major)
  */
-void Packed(const double *A, const double *B, double *C, int rows,
-            int columns, int inners) {
+void Packed(const double *A, const double *B, double *C, int rows, int columns,
+            int inners) {
   // Allocate local buffers matching the tile size.
   // Allocated once and reused to minimize memory allocation overhead.
   double *a_packed = AllocateAligned(kBlockSize * kBlockSize);

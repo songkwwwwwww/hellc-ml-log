@@ -102,20 +102,17 @@ void OmpThread(const double *A, const double *B, double *C, int rows,
     // others.
 #pragma omp for collapse(2) schedule(dynamic)
     for (int row_block = 0; row_block < rows; row_block += kRowMacroTile) {
-      for (int col_block = 0; col_block < columns;
-           col_block += kColMacroTile) {
+      for (int col_block = 0; col_block < columns; col_block += kColMacroTile) {
         int row_block_end = std::min(row_block + kRowMacroTile, rows);
         int col_block_end = std::min(col_block + kColMacroTile, columns);
 
         for (int inner_block = 0; inner_block < inners;
              inner_block += kInnerMacroTile) {
-          int inner_block_end =
-              std::min(inner_block + kInnerMacroTile, inners);
+          int inner_block_end = std::min(inner_block + kInnerMacroTile, inners);
           int inner_count = inner_block_end - inner_block;
 
           // Micro-kernel loops
-          for (int row_micro_block = row_block;
-               row_micro_block < row_block_end;
+          for (int row_micro_block = row_block; row_micro_block < row_block_end;
                row_micro_block += kRowsPerRegister) {
             int row_tile_size =
                 std::min(kRowsPerRegister, row_block_end - row_micro_block);

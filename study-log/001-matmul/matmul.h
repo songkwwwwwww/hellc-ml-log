@@ -37,8 +37,8 @@ void CacheAware(const double *A, const double *B, double *C, int rows,
                 int columns, int inners);
 void OmpThread(const double *A, const double *B, double *C, int rows,
                int columns, int inners);
-void Packed(const double *A, const double *B, double *C, int rows,
-            int columns, int inners);
+void Packed(const double *A, const double *B, double *C, int rows, int columns,
+            int inners);
 void Reference(const double *A, const double *B, double *C, int rows,
                int columns, int inners);
 

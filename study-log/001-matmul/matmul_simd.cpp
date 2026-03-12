@@ -79,8 +79,7 @@ void Simd(const double *A, const double *B, double *C, int rows, int columns,
 
   // Outer loops for cache tiling
   for (int row_block = 0; row_block < rows; row_block += kTileSize) {
-    for (int inner_block = 0; inner_block < inners;
-         inner_block += kTileSize) {
+    for (int inner_block = 0; inner_block < inners; inner_block += kTileSize) {
       for (int col_block = 0; col_block < columns; col_block += kTileSize) {
         SimdBlock(A, B, C, rows, columns, inners, row_block, col_block,
                   inner_block, kTileSize);

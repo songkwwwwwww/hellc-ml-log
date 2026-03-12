@@ -31,15 +31,14 @@ void Tiled(const double *A, const double *B, double *C, int rows, int columns,
       for (int col_block = 0; col_block < columns; col_block += kTileSize) {
         // Micro-kernels: Inner loops compute the matrix multiplication for the
         // current tile
-        for (int row = row_block;
-             row < std::min(row_block + kTileSize, rows); ++row) {
+        for (int row = row_block; row < std::min(row_block + kTileSize, rows);
+             ++row) {
           for (int inner = inner_block;
                inner < std::min(inner_block + kTileSize, inners); ++inner) {
             double a_val = A[row * inners + inner];
             for (int col = col_block;
                  col < std::min(col_block + kTileSize, columns); ++col) {
-              C[row * columns + col] +=
-                  a_val * B[inner * columns + col];
+              C[row * columns + col] += a_val * B[inner * columns + col];
             }
           }
         }

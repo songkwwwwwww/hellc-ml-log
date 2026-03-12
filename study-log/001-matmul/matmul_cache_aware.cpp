@@ -88,8 +88,7 @@ void CacheAware(const double *A, const double *B, double *C, int rows,
          inner_block += kInnerMacroTile) {
       int inner_block_end = std::min(inner_block + kInnerMacroTile, inners);
       int inner_count = inner_block_end - inner_block;
-      for (int col_block = 0; col_block < columns;
-           col_block += kColMacroTile) {
+      for (int col_block = 0; col_block < columns; col_block += kColMacroTile) {
         int col_block_end = std::min(col_block + kColMacroTile, columns);
 
         // Micro-tiling for L1 Cache and Registers
@@ -97,8 +96,7 @@ void CacheAware(const double *A, const double *B, double *C, int rows,
              row_micro_block += kRowsPerRegister) {
           int row_tile_size =
               std::min(kRowsPerRegister, row_block_end - row_micro_block);
-          for (int col_micro_block = col_block;
-               col_micro_block < col_block_end;
+          for (int col_micro_block = col_block; col_micro_block < col_block_end;
                col_micro_block += kColsPerRegister) {
             int col_tile_size =
                 std::min(kColsPerRegister, col_block_end - col_micro_block);
@@ -106,11 +104,11 @@ void CacheAware(const double *A, const double *B, double *C, int rows,
             // Fast path: fully fits the register blocking dimensions
             if (row_tile_size == kRowsPerRegister &&
                 col_tile_size == kColsPerRegister) {
-              const double *a_panel = &A[row_micro_block * inners + inner_block];
+              const double *a_panel =
+                  &A[row_micro_block * inners + inner_block];
               const double *b_panel =
                   &B[inner_block * columns + col_micro_block];
-              double *c_block =
-                  &C[row_micro_block * columns + col_micro_block];
+              double *c_block = &C[row_micro_block * columns + col_micro_block];
               NeonBlock<kColsPerRegister, kRowsPerRegister>(
                   c_block, a_panel, b_panel, columns, inners, inner_count);
             } else {
