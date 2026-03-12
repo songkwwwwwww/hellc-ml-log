@@ -40,6 +40,7 @@ CPU Caches:
   L1 Instruction 128 KiB
   L2 Unified 4096 KiB (x10)
 Load Average: 2.12, 1.51, 1.44
+```
 -------------------------------------------------------------------------------------
 Benchmark                           Time             CPU   Iterations UserCounters...
 -------------------------------------------------------------------------------------
@@ -51,3 +52,4 @@ BM_Matmul/CacheAware/2048        2623 ms         2623 ms            1 GFLOPS=6.5
 BM_Matmul/OmpThread/2048          481 ms          465 ms            2 GFLOPS=36.9407G/s
 BM_Matmul/Packed/2048             952 ms          952 ms            1 GFLOPS=18.0517G/s
 BM_Matmul/Reference/2048         42.2 ms         42.2 ms           17 GFLOPS=407.4G/s
+```
