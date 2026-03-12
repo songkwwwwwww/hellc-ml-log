@@ -1,5 +1,6 @@
 #include "matmul.h"
 #include "matrix_utils.h"
+#include <algorithm>
 #include <benchmark/benchmark.h>
 #include <vector>
 
@@ -30,6 +31,9 @@ static void BenchmarkMatmul(benchmark::State &state, MatmulFunc func,
 
   // Benchmark loop
   for (auto _ : state) {
+    state.PauseTiming();
+    std::fill_n(C, rows * columns, 0.0);
+    state.ResumeTiming();
     func(A, B, C, rows, columns, inners);
     // Prevent the compiler from optimizing away the result matrix C
     benchmark::DoNotOptimize(C);
@@ -60,13 +64,17 @@ static void BenchmarkMatmul(benchmark::State &state, MatmulFunc func,
 
 REGISTER_BENCHMARK(Naive, Naive);
 REGISTER_BENCHMARK(NaiveRegisterAcc, NaiveRegisterAcc);
+REGISTER_BENCHMARK(CacheAware, CacheAware);
 REGISTER_BENCHMARK(LoopReorder, LoopReorder);
 REGISTER_BENCHMARK(Tiled1D, Tiled1D);
 REGISTER_BENCHMARK(TiledMD, TiledMD);
 REGISTER_BENCHMARK(Simd, SIMD);
-REGISTER_BENCHMARK(CacheAware, CacheAware);
-REGISTER_BENCHMARK(OmpThread, OmpThread);
 REGISTER_BENCHMARK(Packed, Packed);
+REGISTER_BENCHMARK(OmpThread, OmpThread);
+REGISTER_BENCHMARK(OmpThreadSimd, OmpThreadSimd);
+REGISTER_BENCHMARK(OmpThreadPacked, OmpThreadPacked);
+REGISTER_BENCHMARK(OmpThreadPackedSimd, OmpThreadPackedSimd);
+REGISTER_BENCHMARK(OmpThreadPackedRegister, OmpThreadPackedRegister);
 REGISTER_BENCHMARK(Reference, Reference);
 
 BENCHMARK_MAIN();

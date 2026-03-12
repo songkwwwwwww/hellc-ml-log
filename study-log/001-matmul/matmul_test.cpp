@@ -1,5 +1,6 @@
 #include "matmul.h"
 #include "matrix_utils.h"
+#include <algorithm>
 #include <gtest/gtest.h>
 
 using namespace matmul;
@@ -55,6 +56,11 @@ TEST_F(MatmulTest, NaiveRegisterAccCorrectness) {
   EXPECT_TRUE(VerifyResults(C, refC, rows * columns));
 }
 
+TEST_F(MatmulTest, CacheAwareCorrectness) {
+  CacheAware(A, B, C, rows, columns, inners);
+  EXPECT_TRUE(VerifyResults(C, refC, rows * columns));
+}
+
 TEST_F(MatmulTest, LoopReorderCorrectness) {
   LoopReorder(A, B, C, rows, columns, inners);
   EXPECT_TRUE(VerifyResults(C, refC, rows * columns));
@@ -75,8 +81,8 @@ TEST_F(MatmulTest, SIMDCorrectness) {
   EXPECT_TRUE(VerifyResults(C, refC, rows * columns));
 }
 
-TEST_F(MatmulTest, CacheAwareCorrectness) {
-  CacheAware(A, B, C, rows, columns, inners);
+TEST_F(MatmulTest, PackedCorrectness) {
+  Packed(A, B, C, rows, columns, inners);
   EXPECT_TRUE(VerifyResults(C, refC, rows * columns));
 }
 
@@ -85,9 +91,64 @@ TEST_F(MatmulTest, OmpThreadCorrectness) {
   EXPECT_TRUE(VerifyResults(C, refC, rows * columns));
 }
 
-TEST_F(MatmulTest, PackedCorrectness) {
-  Packed(A, B, C, rows, columns, inners);
+TEST_F(MatmulTest, OmpThreadSimdCorrectness) {
+  OmpThreadSimd(A, B, C, rows, columns, inners);
   EXPECT_TRUE(VerifyResults(C, refC, rows * columns));
+}
+
+TEST_F(MatmulTest, OmpThreadPackedCorrectness) {
+  OmpThreadPacked(A, B, C, rows, columns, inners);
+  EXPECT_TRUE(VerifyResults(C, refC, rows * columns));
+}
+
+TEST_F(MatmulTest, OmpThreadPackedSimdCorrectness) {
+  OmpThreadPackedSimd(A, B, C, rows, columns, inners);
+  EXPECT_TRUE(VerifyResults(C, refC, rows * columns));
+}
+
+TEST_F(MatmulTest, OmpThreadPackedRegisterCorrectness) {
+  OmpThreadPackedRegister(A, B, C, rows, columns, inners);
+  EXPECT_TRUE(VerifyResults(C, refC, rows * columns));
+}
+
+TEST(MatmulEdgeTest, OmpThreadVariantsHandleRaggedTiles) {
+  constexpr int rows = 95;
+  constexpr int columns = 117;
+  constexpr int inners = 73;
+
+  double *A = AllocateAligned(rows * inners);
+  double *B = AllocateAligned(inners * columns);
+  double *C = AllocateAligned(rows * columns);
+  double *refC = AllocateAligned(rows * columns);
+
+  InitializeRandom(A, rows * inners);
+  InitializeRandom(B, inners * columns);
+  Reference(A, B, refC, rows, columns, inners);
+
+  struct Variant {
+    const char *name;
+    MatmulFunc func;
+  };
+
+  const Variant variants[] = {
+      {"OmpThread", OmpThread},
+      {"OmpThreadSimd", OmpThreadSimd},
+      {"OmpThreadPacked", OmpThreadPacked},
+      {"OmpThreadPackedSimd", OmpThreadPackedSimd},
+      {"OmpThreadPackedRegister", OmpThreadPackedRegister},
+  };
+
+  for (const Variant &variant : variants) {
+    SCOPED_TRACE(variant.name);
+    std::fill_n(C, rows * columns, 0.0);
+    variant.func(A, B, C, rows, columns, inners);
+    EXPECT_TRUE(VerifyResults(C, refC, rows * columns));
+  }
+
+  FreeAligned(A);
+  FreeAligned(B);
+  FreeAligned(C);
+  FreeAligned(refC);
 }
 
 int main(int argc, char **argv) {

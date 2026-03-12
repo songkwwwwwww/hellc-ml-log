@@ -3,6 +3,29 @@
 
 namespace matmul {
 
+namespace {
+// row-major access helper
+static inline int idx(int row, int col, int num_cols) {
+  return row * num_cols + col;
+}
+
+static inline void multiply_block(const double *A, const double *B, double *C,
+                                  int columns, int inners, int row_begin,
+                                  int row_end, int col_begin, int col_end,
+                                  int inner_begin, int inner_end) {
+  for (int row = row_begin; row < row_end; ++row) {
+    for (int inner = inner_begin; inner < inner_end; ++inner) {
+      const double a_value = A[idx(row, inner, inners)];
+
+      for (int col = col_begin; col < col_end; ++col) {
+        C[idx(row, col, columns)] += a_value * B[idx(inner, col, columns)];
+      }
+    }
+  }
+}
+
+} // namespace
+
 /**
  * @brief Tiled (Blocked) Matrix Multiplication
  *
@@ -22,23 +45,53 @@ namespace matmul {
  */
 void TiledMD(const double *A, const double *B, double *C, int rows, int columns,
              int inners) {
-  // A typical tile size that balances L1/L2 cache utilization on modern CPUs.
-  const int kTileSize = 512;
 
-  // Outer loops iterate over the tiles
-  for (int row_block = 0; row_block < rows; row_block += kTileSize) {
-    for (int inner_block = 0; inner_block < inners; inner_block += kTileSize) {
-      for (int col_block = 0; col_block < columns; col_block += kTileSize) {
-        // Micro-kernels: Inner loops compute the matrix multiplication for the
-        // current tile
-        for (int row = row_block; row < std::min(row_block + kTileSize, rows);
-             ++row) {
-          for (int inner = inner_block;
-               inner < std::min(inner_block + kTileSize, inners); ++inner) {
-            double a_val = A[row * inners + inner];
-            for (int col = col_block;
-                 col < std::min(col_block + kTileSize, columns); ++col) {
-              C[row * columns + col] += a_val * B[inner * columns + col];
+  static constexpr int kTileSize = 1024;
+  static constexpr int kL3Tile = kTileSize;
+  static constexpr int kL2Tile = kTileSize;
+  static constexpr int kL1Tile = kTileSize;
+
+  // L3 blocking
+  for (int l3_row = 0; l3_row < rows; l3_row += kL3Tile) {
+    const int l3_row_end = std::min(l3_row + kL3Tile, rows);
+
+    for (int l3_col = 0; l3_col < columns; l3_col += kL3Tile) {
+      const int l3_col_end = std::min(l3_col + kL3Tile, columns);
+
+      for (int l3_inner = 0; l3_inner < inners; l3_inner += kL3Tile) {
+        const int l3_inner_end = std::min(l3_inner + kL3Tile, inners);
+
+        // L2 blocking
+        for (int l2_row = l3_row; l2_row < l3_row_end; l2_row += kL2Tile) {
+          const int l2_row_end = std::min(l2_row + kL2Tile, l3_row_end);
+
+          for (int l2_col = l3_col; l2_col < l3_col_end; l2_col += kL2Tile) {
+            const int l2_col_end = std::min(l2_col + kL2Tile, l3_col_end);
+
+            for (int l2_inner = l3_inner; l2_inner < l3_inner_end;
+                 l2_inner += kL2Tile) {
+              const int l2_inner_end =
+                  std::min(l2_inner + kL2Tile, l3_inner_end);
+
+              // L1 blocking
+              for (int l1_row = l2_row; l1_row < l2_row_end;
+                   l1_row += kL1Tile) {
+                const int l1_row_end = std::min(l1_row + kL1Tile, l2_row_end);
+
+                for (int l1_col = l2_col; l1_col < l2_col_end;
+                     l1_col += kL1Tile) {
+                  const int l1_col_end = std::min(l1_col + kL1Tile, l2_col_end);
+
+                  for (int l1_inner = l2_inner; l1_inner < l2_inner_end;
+                       l1_inner += kL1Tile) {
+                    const int l1_inner_end =
+                        std::min(l1_inner + kL1Tile, l2_inner_end);
+
+                    multiply_block(A, B, C, columns, inners, l1_row, l1_row_end,
+                                   l1_col, l1_col_end, l1_inner, l1_inner_end);
+                  }
+                }
+              }
             }
           }
         }
