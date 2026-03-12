@@ -1,5 +1,7 @@
 # 001: Matrix Multiplication (Matmul)
 
+The goal of this post is not to write a competitive BLAS implementation, but to learn about common performance optimizations
+
 This directory contains various implementations of the Matrix Multiplication (GEMM) algorithm, progressing from a naive approach to highly optimized hardware-aware versions. The goal is to study how different low-level software optimization techniques affect computational throughput (GFLOPS).
 
 ## Implementations
