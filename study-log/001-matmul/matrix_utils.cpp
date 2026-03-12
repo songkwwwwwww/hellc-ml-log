@@ -1,14 +1,14 @@
 #include "matrix_utils.h"
 #include <cmath>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <random>
-#include <cstring>
 
 namespace matmul {
 
 // Initializes the array with random real numbers between -1.0 and 1.0.
-void initialize_random(double *data, int size) {
+void InitializeRandom(double *data, int size) {
   std::random_device rd;
   std::mt19937 gen(rd());
   std::uniform_real_distribution<double> dis(-1.0f, 1.0f);
@@ -17,10 +17,11 @@ void initialize_random(double *data, int size) {
   }
 }
 
-// Verifies if the computed result matches the reference result within a tolerance.
-// This is crucial for making sure optimizations don't break the correctness.
-bool verify_results(const double *C, const double *refC, int size,
-                    double tolerance) {
+// Verifies if the computed result matches the reference result within a
+// tolerance. This is crucial for making sure optimizations don't break the
+// correctness.
+bool VerifyResults(const double *C, const double *refC, int size,
+                   double tolerance) {
   for (int i = 0; i < size; ++i) {
     if (std::abs(C[i] - refC[i]) > tolerance) {
       std::cerr << "Verification failed at index " << i << ": " << C[i]
@@ -32,9 +33,9 @@ bool verify_results(const double *C, const double *refC, int size,
 }
 
 // Allocates memory aligned to a 64-byte boundary.
-// Proper memory alignment prevents cross-cacheline loads and is required for 
+// Proper memory alignment prevents cross-cacheline loads and is required for
 // maximum performance in SIMD vector load/store instructions (e.g., AVX, NEON).
-double *allocate_aligned(int size) {
+double *AllocateAligned(int size) {
   void *ptr = nullptr;
   // Align to 64 bytes for AVX-512/NEON cache line compatibility
   if (posix_memalign(&ptr, 64, size * sizeof(double)) != 0) {
@@ -45,6 +46,6 @@ double *allocate_aligned(int size) {
 }
 
 // Frees aligned memory.
-void free_aligned(double *ptr) { std::free(ptr); }
+void FreeAligned(double *ptr) { std::free(ptr); }
 
 } // namespace matmul

@@ -5,33 +5,42 @@ namespace matmul {
 
 /**
  * @brief Common interface for Matrix Multiplication: C = A * B
- * 
+ *
  * This header defines the standard interface for various matrix multiplication
  * implementations. Matrix multiplication is a fundamental operation in machine
  * learning and high-performance computing.
- * 
+ *
  * Matrix Details:
- * - A: M x K matrix (stored in row-major order)
- * - B: K x N matrix (stored in row-major order)
- * - C: M x N matrix (stored in row-major order)
- * 
+ * - A: rows x inners matrix (stored in row-major order)
+ * - B: inners x columns matrix (stored in row-major order)
+ * - C: rows x columns matrix (stored in row-major order)
+ *
  * Row-major order means that elements of a row are stored in contiguous memory
- * locations. For example, A[i][j] is accessed as A[i * K + j].
+ * locations. For example, A[row][inner] is accessed as
+ * A[row * inners + inner].
  */
-typedef void (*MatmulFunc)(const double *A, const double *B, double *C, int M,
-                           int N, int K);
+typedef void (*MatmulFunc)(const double *A, const double *B, double *C,
+                           int rows, int columns, int inners);
 
 // Implementations of matrix multiplication with various optimization techniques
-void naive(const double *A, const double *B, double *C, int M, int N, int K);
-void loop_reorder(const double *A, const double *B, double *C, int M, int N,
-                  int K);
-void tiled(const double *A, const double *B, double *C, int M, int N, int K);
-void simd(const double *A, const double *B, double *C, int M, int N, int K);
-void cache_aware(const double *A, const double *B, double *C, int M, int N, int K);
-void omp_thread(const double *A, const double *B, double *C, int M, int N, int K);
-void packed(const double *A, const double *B, double *C, int M, int N, int K);
-void reference(const double *A, const double *B, double *C, int M, int N,
-               int K);
+void Naive(const double *A, const double *B, double *C, int rows, int columns,
+           int inners);
+void NaiveRegisterAcc(const double *A, const double *B, double *C, int rows,
+                      int columns, int inners);
+void LoopReorder(const double *A, const double *B, double *C, int rows,
+                 int columns, int inners);
+void Tiled(const double *A, const double *B, double *C, int rows, int columns,
+           int inners);
+void Simd(const double *A, const double *B, double *C, int rows, int columns,
+          int inners);
+void CacheAware(const double *A, const double *B, double *C, int rows,
+                int columns, int inners);
+void OmpThread(const double *A, const double *B, double *C, int rows,
+               int columns, int inners);
+void Packed(const double *A, const double *B, double *C, int rows,
+            int columns, int inners);
+void Reference(const double *A, const double *B, double *C, int rows,
+               int columns, int inners);
 
 } // namespace matmul
 

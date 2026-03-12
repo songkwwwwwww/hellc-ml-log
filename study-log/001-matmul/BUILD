@@ -7,6 +7,7 @@ cc_library(
         "matmul_cache_aware.cpp",
         "matmul_loop_reorder.cpp",
         "matmul_naive.cpp",
+        "matmul_naive_register_acc.cpp",
         "matmul_omp.cpp",
         "matmul_packed.cpp",
         "matmul_reference.cpp",

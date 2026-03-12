@@ -172,7 +172,7 @@
   "moduleExtensions": {
     "//third_party:libomp_extension.bzl%libomp_ext": {
       "general": {
-        "bzlTransitiveDigest": "3PpzrGloT5Esgt3RTJmZPtslmdwLOkTX3J/cMNOtoc4=",
+        "bzlTransitiveDigest": "NWyH6U0lMM+hjicaVXCbpdQq5WPsdbS4PKzJMwVtQbI=",
         "usagesDigest": "neoU1fFnmyuCHCAaJijdceyocjlEozR/lm3/DkAUy0I=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},

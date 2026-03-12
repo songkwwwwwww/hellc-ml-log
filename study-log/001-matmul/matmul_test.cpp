@@ -6,7 +6,7 @@ using namespace matmul;
 
 /**
  * @brief Test fixture for Matrix Multiplication implementations
- * 
+ *
  * Sets up the required matrices before each test and cleans them up afterwards.
  * Uses a reference BLAS implementation to verify the correctness of our custom
  * matrix multiplication algorithms.
@@ -14,70 +14,75 @@ using namespace matmul;
 class MatmulTest : public ::testing::Test {
 protected:
   void SetUp() override {
-    M = 128;
-    N = 128;
-    K = 128;
-    
+    rows = 128;
+    columns = 128;
+    inners = 128;
+
     // Allocate memory with proper alignment for SIMD testing
-    A = allocate_aligned(M * K);
-    B = allocate_aligned(K * N);
-    C = allocate_aligned(M * N);
-    refC = allocate_aligned(M * N);
+    A = AllocateAligned(rows * inners);
+    B = AllocateAligned(inners * columns);
+    C = AllocateAligned(rows * columns);
+    refC = AllocateAligned(rows * columns);
 
     // Initialize inputs with random values
-    initialize_random(A, M * K);
-    initialize_random(B, K * N);
+    InitializeRandom(A, rows * inners);
+    InitializeRandom(B, inners * columns);
 
     // Generate the "golden" reference results using BLAS
-    reference(A, B, refC, M, N, K);
+    Reference(A, B, refC, rows, columns, inners);
   }
 
   void TearDown() override {
-    free_aligned(A);
-    free_aligned(B);
-    free_aligned(C);
-    free_aligned(refC);
+    FreeAligned(A);
+    FreeAligned(B);
+    FreeAligned(C);
+    FreeAligned(refC);
   }
 
-  int M, N, K;
+  int rows, columns, inners;
   double *A, *B, *C, *refC;
 };
 
 // Test definitions for each optimization technique
 
 TEST_F(MatmulTest, NaiveCorrectness) {
-  naive(A, B, C, M, N, K);
-  EXPECT_TRUE(verify_results(C, refC, M * N));
+  Naive(A, B, C, rows, columns, inners);
+  EXPECT_TRUE(VerifyResults(C, refC, rows * columns));
+}
+
+TEST_F(MatmulTest, NaiveRegisterAccCorrectness) {
+  NaiveRegisterAcc(A, B, C, rows, columns, inners);
+  EXPECT_TRUE(VerifyResults(C, refC, rows * columns));
 }
 
 TEST_F(MatmulTest, LoopReorderCorrectness) {
-  loop_reorder(A, B, C, M, N, K);
-  EXPECT_TRUE(verify_results(C, refC, M * N));
+  LoopReorder(A, B, C, rows, columns, inners);
+  EXPECT_TRUE(VerifyResults(C, refC, rows * columns));
 }
 
 TEST_F(MatmulTest, TiledCorrectness) {
-  tiled(A, B, C, M, N, K);
-  EXPECT_TRUE(verify_results(C, refC, M * N));
+  Tiled(A, B, C, rows, columns, inners);
+  EXPECT_TRUE(VerifyResults(C, refC, rows * columns));
 }
 
 TEST_F(MatmulTest, SIMDCorrectness) {
-  simd(A, B, C, M, N, K);
-  EXPECT_TRUE(verify_results(C, refC, M * N));
+  Simd(A, B, C, rows, columns, inners);
+  EXPECT_TRUE(VerifyResults(C, refC, rows * columns));
 }
 
 TEST_F(MatmulTest, CacheAwareCorrectness) {
-  cache_aware(A, B, C, M, N, K);
-  EXPECT_TRUE(verify_results(C, refC, M * N));
+  CacheAware(A, B, C, rows, columns, inners);
+  EXPECT_TRUE(VerifyResults(C, refC, rows * columns));
 }
 
 TEST_F(MatmulTest, OmpThreadCorrectness) {
-  omp_thread(A, B, C, M, N, K);
-  EXPECT_TRUE(verify_results(C, refC, M * N));
+  OmpThread(A, B, C, rows, columns, inners);
+  EXPECT_TRUE(VerifyResults(C, refC, rows * columns));
 }
 
 TEST_F(MatmulTest, PackedCorrectness) {
-  packed(A, B, C, M, N, K);
-  EXPECT_TRUE(verify_results(C, refC, M * N));
+  Packed(A, B, C, rows, columns, inners);
+  EXPECT_TRUE(VerifyResults(C, refC, rows * columns));
 }
 
 int main(int argc, char **argv) {

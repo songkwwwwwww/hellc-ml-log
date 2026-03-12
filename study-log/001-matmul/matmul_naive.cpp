@@ -3,26 +3,27 @@
 namespace matmul {
 
 /**
- * @brief Naive Matrix Multiplication (i-j-k loop order)
- * 
- * This is the textbook implementation of matrix multiplication. 
+ * @brief Naive Matrix Multiplication (row-col-inner loop order)
+ *
+ * This is the textbook implementation of matrix multiplication.
  * While easy to understand, it is extremely inefficient on modern hardware.
- * 
+ *
  * Performance Issues:
- * - Poor Cache Utilization: In the innermost 'k' loop, B[k * N + j] is accessed.
- *   Because matrices are stored in row-major order, accessing elements column-wise
- *   (incrementing 'k') causes large memory jumps. This ruins spatial locality,
- *   leading to frequent CPU cache misses.
- * - Time Complexity: O(M * N * K)
+ * - Poor Cache Utilization: In the innermost 'inner' loop,
+ *   B[inner * columns + col] is
+ * accessed. Because matrices are stored in row-major order, accessing elements
+ * column-wise (incrementing 'inner') causes large memory jumps. This ruins
+ * spatial locality, leading to frequent CPU cache misses.
+ * - Time Complexity: O(rows * columns * inners)
  */
-void naive(const double *A, const double *B, double *C, int M, int N, int K) {
-  for (int i = 0; i < M; ++i) {
-    for (int j = 0; j < N; ++j) {
-      double sum = 0.0f;
-      for (int k = 0; k < K; ++k) {
-        sum += A[i * K + k] * B[k * N + j];
+void Naive(const double *A, const double *B, double *C, int rows, int columns,
+           int inners) {
+  for (int row = 0; row < rows; ++row) {
+    for (int col = 0; col < columns; ++col) {
+      for (int inner = 0; inner < inners; ++inner) {
+        C[row * columns + col] +=
+            A[row * inners + inner] * B[inner * columns + col];
       }
-      C[i * N + j] = sum;
     }
   }
 }

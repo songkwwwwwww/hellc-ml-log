@@ -11,8 +11,8 @@ build --sandbox_debug
 
 # Optimization
 build --copt=-O3
-build --copt=-march=native
-build --copt=-ffast-math
+build --copt=-march=native # 이 마이크로아키텍처에 특화된 코드를 생성하도록 컴파일러에 지시
+build --copt=-ffast-math # 컴파일러가 부동 소수점 결합 법칙을 무시한 연산을 할 수 있게 하고, 프로그램에 NaN이나 Inf가 없을 것임을 보장
 
 # Support for Python
 # build --python_path=python3
