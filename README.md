@@ -11,9 +11,32 @@ This project is structured as a Monorepo using Bazel. Weekly study materials and
 
 ## Prerequisites
 
+### Build Tools
+
 - [Bazel (Bazelisk recommended)](https://github.com/bazelbuild/bazelisk)
-- A compiler supporting C++17 or higher (gcc, clang, etc.)
+- A compiler supporting C++17 or higher (`clang`, `gcc`, etc.)
 - Python 3
+
+### System Libraries
+
+- OpenMP runtime (`libomp`) for OpenMP-based study projects such as
+  `study-log/001-matmul`
+  - On Apple Silicon macOS, the current repository setup expects Homebrew's
+    `libomp` at `/opt/homebrew/opt/libomp`
+  - Example:
+    ```bash
+    brew install libomp
+    ```
+- BLAS library for reference implementations
+  - macOS: Apple Accelerate framework
+  - non-macOS: OpenBLAS
+
+### Bazel-managed Dependencies
+
+- `googletest` for correctness tests
+- `google_benchmark` for performance benchmarks
+
+These dependencies are declared in `MODULE.bazel` and fetched by Bazel.
 
 ## How to Run (e.g., 001-matmul)
 
@@ -28,6 +51,10 @@ Measure the performance (in GFLOPS) of various implementations and optimization 
 ```bash
 bazel run -c opt //study-log/001-matmul:matmul_bench
 ```
+
+The benchmark numbers currently documented for `study-log/001-matmul` were
+collected on an Apple M4 Mac mini. Expect different results on other CPUs,
+toolchains, or build settings.
 
 ---
 
