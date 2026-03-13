@@ -1,7 +1,7 @@
 #include "matmul.h"
 #include <algorithm>
 
-#if defined(__ARM_NEON) || defined(__ARM_NEON__)
+#if defined(__ARM_NEON)
 #include <arm_neon.h>
 #endif
 
@@ -34,7 +34,7 @@ inline void SimdBlock(const double *A, const double *B, double *C, int rows,
   for (int row = row_block; row < row_end; ++row) {
     for (int inner = inner_block; inner < inner_end; ++inner) {
       double a_val = A[row * inners + inner];
-#if defined(__ARM_NEON) || defined(__ARM_NEON__)
+#if defined(__ARM_NEON)
       // Broadcast a_val into all lanes of a vector register
       float64x2_t a_vec = vmovq_n_f64(a_val);
       int col = col_block;

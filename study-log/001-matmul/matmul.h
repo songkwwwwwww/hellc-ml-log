@@ -27,8 +27,6 @@ void Naive(const double *A, const double *B, double *C, int rows, int columns,
            int inners);
 void NaiveRegisterAcc(const double *A, const double *B, double *C, int rows,
                       int columns, int inners);
-void CacheAware(const double *A, const double *B, double *C, int rows,
-                int columns, int inners);
 void LoopReorder(const double *A, const double *B, double *C, int rows,
                  int columns, int inners);
 void Tiled1D(const double *A, const double *B, double *C, int rows, int columns,

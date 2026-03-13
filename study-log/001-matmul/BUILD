@@ -4,7 +4,6 @@ load("@rules_python//python:defs.bzl", "py_binary")
 cc_library(
     name = "matmul_lib",
     srcs = [
-        "matmul_cache_aware.cpp",
         "matmul_loop_reorder.cpp",
         "matmul_naive.cpp",
         "matmul_naive_register_acc.cpp",

@@ -64,7 +64,6 @@ static void BenchmarkMatmul(benchmark::State &state, MatmulFunc func,
 
 REGISTER_BENCHMARK(Naive, Naive);
 REGISTER_BENCHMARK(NaiveRegisterAcc, NaiveRegisterAcc);
-REGISTER_BENCHMARK(CacheAware, CacheAware);
 REGISTER_BENCHMARK(LoopReorder, LoopReorder);
 REGISTER_BENCHMARK(Tiled1D, Tiled1D);
 REGISTER_BENCHMARK(TiledMD, TiledMD);

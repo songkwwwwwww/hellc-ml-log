@@ -56,11 +56,6 @@ TEST_F(MatmulTest, NaiveRegisterAccCorrectness) {
   EXPECT_TRUE(VerifyResults(C, refC, rows * columns));
 }
 
-TEST_F(MatmulTest, CacheAwareCorrectness) {
-  CacheAware(A, B, C, rows, columns, inners);
-  EXPECT_TRUE(VerifyResults(C, refC, rows * columns));
-}
-
 TEST_F(MatmulTest, LoopReorderCorrectness) {
   LoopReorder(A, B, C, rows, columns, inners);
   EXPECT_TRUE(VerifyResults(C, refC, rows * columns));

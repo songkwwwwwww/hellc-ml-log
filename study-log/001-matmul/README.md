@@ -11,13 +11,12 @@ This directory contains various implementations of the Matrix Multiplication (GE
 3. **`matmul_tiled.cpp`**: Introduces block-tiling to improve Cache hit rates by keeping active sub-matrices within the L1/L2 cache.
 4. **`matmul_packed.cpp`**: Packs matrix tiles into continuous memory buffers to minimize TLB (Translation Lookaside Buffer) misses and cache conflicts.
 5. **`matmul_simd.cpp`**: Utilizes ARM NEON Intrinsics to compute multiple data points in a single instruction cycle (Vectorization).
-6. **`matmul_cache_aware.cpp`**: A sophisticated hierarchical approach applying both macro-tiling (Cache blocking) and micro-tiling (Register blocking) with SIMD.
-7. **`matmul_omp.cpp` / `OmpThread`**: A cache-tiled OpenMP baseline that parallelizes independent `C` tiles across CPU cores.
-8. **`matmul_omp.cpp` / `OmpThreadSimd`**: Adds an explicit SIMD micro-kernel inside each OpenMP tile so every worker also vectorizes its inner column updates.
-9. **`matmul_omp.cpp` / `OmpThreadPacked`**: Packs per-thread `A`/`B` tiles into contiguous scratch buffers before multiplying them to reduce strided memory traffic.
-10. **`matmul_omp.cpp` / `OmpThreadPackedSimd`**: Combines OpenMP tiling, per-thread packing, and SIMD in the micro-kernel to study the stacked effect of all three optimizations.
-11. **`matmul_omp.cpp` / `OmpThreadPackedRegister`**: Uses a packed `4x8` register-blocked micro-kernel so each thread accumulates a small `C` tile in NEON registers before writing it back.
-12. **`matmul_reference.cpp`**: Wraps the highly-optimized system BLAS library (e.g., Apple Accelerate Framework or OpenBLAS) for ground-truth correctness and baseline performance comparisons.
+6. **`matmul_omp.cpp` / `OmpThread`**: A cache-tiled OpenMP baseline that parallelizes independent `C` tiles across CPU cores.
+7. **`matmul_omp.cpp` / `OmpThreadSimd`**: Adds an explicit SIMD micro-kernel inside each OpenMP tile so every worker also vectorizes its inner column updates.
+8. **`matmul_omp.cpp` / `OmpThreadPacked`**: Packs per-thread `A`/`B` tiles into contiguous scratch buffers before multiplying them to reduce strided memory traffic.
+9. **`matmul_omp.cpp` / `OmpThreadPackedSimd`**: Combines OpenMP tiling, per-thread packing, and SIMD in the micro-kernel to study the stacked effect of all three optimizations.
+10. **`matmul_omp.cpp` / `OmpThreadPackedRegister`**: Uses a packed `4x8` register-blocked micro-kernel so each thread accumulates a small `C` tile in NEON registers before writing it back.
+11. **`matmul_reference.cpp`**: Wraps the highly-optimized system BLAS library (e.g., Apple Accelerate Framework or OpenBLAS) for ground-truth correctness and baseline performance comparisons.
 
 ## Prerequisites
 
@@ -91,7 +90,6 @@ Benchmark                                             Time             CPU   Ite
 -------------------------------------------------------------------------------------------------------
 BenchmarkMatmul/Naive/2048                        22582 ms        22409 ms            1 GFLOPS=766.657M/s
 BenchmarkMatmul/NaiveRegisterAcc/2048             17638 ms        17572 ms            1 GFLOPS=977.703M/s
-BenchmarkMatmul/CacheAware/2048                    2704 ms         2702 ms            1 GFLOPS=6.35844G/s
 BenchmarkMatmul/LoopReorder/2048                   1065 ms         1064 ms            1 GFLOPS=16.1496G/s
 BenchmarkMatmul/Tiled1D/2048                       1047 ms         1046 ms            1 GFLOPS=16.4267G/s
 BenchmarkMatmul/TiledMD/2048                       1146 ms         1145 ms            1 GFLOPS=15.0056G/s

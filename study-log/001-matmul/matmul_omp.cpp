@@ -3,7 +3,7 @@
 #include <cstring>
 #include <omp.h>
 
-#if defined(__ARM_NEON) || defined(__ARM_NEON__)
+#if defined(__ARM_NEON)
 #include <arm_neon.h>
 #endif
 
@@ -24,13 +24,13 @@ constexpr int kRegisterCols = 8;
 constexpr int kRegisterInnerTile = 256;
 
 using TileKernel = void (*)(const double *A, const double *B, double *C,
-                            int columns, int inners, int row_begin,
-                            int row_end, int col_begin, int col_end,
-                            int inner_begin, int inner_end);
+                            int columns, int inners, int row_begin, int row_end,
+                            int col_begin, int col_end, int inner_begin,
+                            int inner_end);
 
-using PackedKernel =
-    void (*)(const double *a_packed, const double *b_packed, double *c_block,
-             int columns, int row_count, int col_count, int inner_count);
+using PackedKernel = void (*)(const double *a_packed, const double *b_packed,
+                              double *c_block, int columns, int row_count,
+                              int col_count, int inner_count);
 
 inline int TileEnd(int start, int tile_size, int limit) {
   return std::min(start + tile_size, limit);
@@ -68,7 +68,7 @@ inline void MultiplyTileSimd(const double *A, const double *B, double *C,
     for (int inner = inner_begin; inner < inner_end; ++inner) {
       const double a_value = A[row * inners + inner];
       const double *b_row = &B[inner * columns + col_begin];
-#if defined(__ARM_NEON) || defined(__ARM_NEON__)
+#if defined(__ARM_NEON)
       const float64x2_t a_vec = vmovq_n_f64(a_value);
       int col = 0;
       for (; col <= col_count - 2; col += 2) {
@@ -143,7 +143,7 @@ inline void MultiplyPackedTileSimd(const double *a_packed,
     for (int inner = 0; inner < inner_count; ++inner) {
       const double a_value = a_row[inner];
       const double *b_row = &b_packed[inner * kPackedTileSize];
-#if defined(__ARM_NEON) || defined(__ARM_NEON__)
+#if defined(__ARM_NEON)
       const float64x2_t a_vec = vmovq_n_f64(a_value);
       int col = 0;
       for (; col <= col_count - 2; col += 2) {
@@ -213,7 +213,7 @@ inline void MultiplyPackedRegister4x8(const double *a_panel,
   a_panel = static_cast<const double *>(__builtin_assume_aligned(a_panel, 64));
   b_panel = static_cast<const double *>(__builtin_assume_aligned(b_panel, 64));
 
-#if defined(__ARM_NEON) || defined(__ARM_NEON__)
+#if defined(__ARM_NEON)
   const double *a_row0 = &a_panel[0];
   const double *a_row1 = &a_panel[kRegisterInnerTile];
   const double *a_row2 = &a_panel[2 * kRegisterInnerTile];
@@ -291,7 +291,7 @@ inline void MultiplyPackedRegister4x8(const double *a_panel,
 void RunOmpTiled(const double *A, const double *B, double *C, int rows,
                  int columns, int inners, TileKernel kernel) {
 #pragma omp parallel for default(none)                                         \
-    shared(A, B, C, rows, columns, inners, kernel) collapse(2)                \
+    shared(A, B, C, rows, columns, inners, kernel) collapse(2)                 \
     schedule(static)
   for (int row_block = 0; row_block < rows; row_block += kOmpRowTile) {
     for (int col_block = 0; col_block < columns; col_block += kOmpColTile) {
@@ -300,8 +300,8 @@ void RunOmpTiled(const double *A, const double *B, double *C, int rows,
       for (int inner_block = 0; inner_block < inners;
            inner_block += kOmpInnerTile) {
         const int inner_end = TileEnd(inner_block, kOmpInnerTile, inners);
-        kernel(A, B, C, columns, inners, row_block, row_end, col_block,
-               col_end, inner_block, inner_end);
+        kernel(A, B, C, columns, inners, row_block, row_end, col_block, col_end,
+               inner_block, inner_end);
       }
     }
   }
@@ -361,16 +361,18 @@ void RunOmpPackedRegister(const double *A, const double *B, double *C, int rows,
 
 void RunOmpPacked(const double *A, const double *B, double *C, int rows,
                   int columns, int inners, PackedKernel kernel) {
-#pragma omp parallel default(none) shared(A, B, C, rows, columns, inners,     \
-                                          kernel)
+#pragma omp parallel default(none)                                             \
+    shared(A, B, C, rows, columns, inners, kernel)
   {
     alignas(64) double a_packed[kPackedTileSize * kPackedTileSize];
     alignas(64) double b_packed[kPackedTileSize * kPackedTileSize];
 
 #pragma omp for collapse(2) schedule(static)
     for (int row_block = 0; row_block < rows; row_block += kPackedTileSize) {
-      for (int col_block = 0; col_block < columns; col_block += kPackedTileSize) {
-        const int row_count = TileEnd(row_block, kPackedTileSize, rows) - row_block;
+      for (int col_block = 0; col_block < columns;
+           col_block += kPackedTileSize) {
+        const int row_count =
+            TileEnd(row_block, kPackedTileSize, rows) - row_block;
         const int col_count =
             TileEnd(col_block, kPackedTileSize, columns) - col_block;
         double *c_block = &C[row_block * columns + col_block];
