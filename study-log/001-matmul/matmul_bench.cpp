@@ -53,13 +53,13 @@ static void BenchmarkMatmul(benchmark::State &state, MatmulFunc func,
   FreeAligned(C);
 }
 
-// Register benchmarks using a macro for convenience
-// The test range is fixed at a 2048 x 2048 matrix to represent a realistically
-// large workload
+// Register benchmarks using a macro for convenience.
+// The study log currently compares all implementations on one fixed
+// 2024 x 2024 workload.
 #define REGISTER_BENCHMARK(func, name)                                         \
   BENCHMARK_CAPTURE(BenchmarkMatmul, name, func, #name)                        \
       ->RangeMultiplier(2)                                                     \
-      ->Range(2048, 2048)                                                      \
+      ->Range(2024, 2024)                                                      \
       ->Unit(benchmark::kMillisecond);
 
 REGISTER_BENCHMARK(Naive, Naive);

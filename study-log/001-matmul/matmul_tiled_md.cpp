@@ -1,24 +1,22 @@
 #include "matmul.h"
-#include <algorithm>
+#include <cassert>
 
 namespace matmul {
 
 namespace {
-// row-major access helper
-static inline int idx(int row, int col, int num_cols) {
-  return row * num_cols + col;
-}
 
-static inline void multiply_block(const double *A, const double *B, double *C,
-                                  int columns, int inners, int row_begin,
-                                  int row_end, int col_begin, int col_end,
-                                  int inner_begin, int inner_end) {
-  for (int row = row_begin; row < row_end; ++row) {
-    for (int inner = inner_begin; inner < inner_end; ++inner) {
-      const double a_value = A[idx(row, inner, inners)];
+constexpr int kTileSize = 88;
 
-      for (int col = col_begin; col < col_end; ++col) {
-        C[idx(row, col, columns)] += a_value * B[idx(inner, col, columns)];
+inline void MultiplyTile(const double *A, const double *B, double *C, int size,
+                         int row_block, int col_block, int inner_block) {
+  for (int row = 0; row < kTileSize; ++row) {
+    const double *a_row = &A[(row_block + row) * size + inner_block];
+    double *c_row = &C[(row_block + row) * size + col_block];
+    for (int inner = 0; inner < kTileSize; ++inner) {
+      const double a_value = a_row[inner];
+      const double *b_row = &B[(inner_block + inner) * size + col_block];
+      for (int col = 0; col < kTileSize; ++col) {
+        c_row[col] += a_value * b_row[col];
       }
     }
   }
@@ -45,56 +43,15 @@ static inline void multiply_block(const double *A, const double *B, double *C,
  */
 void TiledMD(const double *A, const double *B, double *C, int rows, int columns,
              int inners) {
+  assert(rows == columns);
+  assert(columns == inners);
+  const int size = rows;
+  assert(size % kTileSize == 0);
 
-  static constexpr int kTileSize = 1024;
-  static constexpr int kL3Tile = kTileSize;
-  static constexpr int kL2Tile = kTileSize;
-  static constexpr int kL1Tile = kTileSize;
-
-  // L3 blocking
-  for (int l3_row = 0; l3_row < rows; l3_row += kL3Tile) {
-    const int l3_row_end = std::min(l3_row + kL3Tile, rows);
-
-    for (int l3_col = 0; l3_col < columns; l3_col += kL3Tile) {
-      const int l3_col_end = std::min(l3_col + kL3Tile, columns);
-
-      for (int l3_inner = 0; l3_inner < inners; l3_inner += kL3Tile) {
-        const int l3_inner_end = std::min(l3_inner + kL3Tile, inners);
-
-        // L2 blocking
-        for (int l2_row = l3_row; l2_row < l3_row_end; l2_row += kL2Tile) {
-          const int l2_row_end = std::min(l2_row + kL2Tile, l3_row_end);
-
-          for (int l2_col = l3_col; l2_col < l3_col_end; l2_col += kL2Tile) {
-            const int l2_col_end = std::min(l2_col + kL2Tile, l3_col_end);
-
-            for (int l2_inner = l3_inner; l2_inner < l3_inner_end;
-                 l2_inner += kL2Tile) {
-              const int l2_inner_end =
-                  std::min(l2_inner + kL2Tile, l3_inner_end);
-
-              // L1 blocking
-              for (int l1_row = l2_row; l1_row < l2_row_end;
-                   l1_row += kL1Tile) {
-                const int l1_row_end = std::min(l1_row + kL1Tile, l2_row_end);
-
-                for (int l1_col = l2_col; l1_col < l2_col_end;
-                     l1_col += kL1Tile) {
-                  const int l1_col_end = std::min(l1_col + kL1Tile, l2_col_end);
-
-                  for (int l1_inner = l2_inner; l1_inner < l2_inner_end;
-                       l1_inner += kL1Tile) {
-                    const int l1_inner_end =
-                        std::min(l1_inner + kL1Tile, l2_inner_end);
-
-                    multiply_block(A, B, C, columns, inners, l1_row, l1_row_end,
-                                   l1_col, l1_col_end, l1_inner, l1_inner_end);
-                  }
-                }
-              }
-            }
-          }
-        }
+  for (int row_block = 0; row_block < size; row_block += kTileSize) {
+    for (int col_block = 0; col_block < size; col_block += kTileSize) {
+      for (int inner_block = 0; inner_block < size; inner_block += kTileSize) {
+        MultiplyTile(A, B, C, size, row_block, col_block, inner_block);
       }
     }
   }

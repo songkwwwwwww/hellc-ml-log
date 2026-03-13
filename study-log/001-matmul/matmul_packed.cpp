@@ -1,13 +1,13 @@
 #include "matmul.h"
 #include "matrix_utils.h"
-#include <algorithm>
+#include <cassert>
 #include <cstring>
 
 namespace matmul {
 
-// Optimized block size for M1 Mac (considering L1 cache and register
-// constraints)
-constexpr int kBlockSize = 64;
+namespace {
+
+constexpr int kTileSize = 88;
 
 /**
  * @brief Packed Block Multiplication Kernel
@@ -19,10 +19,7 @@ constexpr int kBlockSize = 64;
  */
 void MultiplyPackedBlock(const double *__restrict__ a_packed,
                          const double *__restrict__ b_packed,
-                         double *__restrict__ C, const int columns,
-                         const int row_block, const int col_block,
-                         const int row_limit, const int col_limit,
-                         const int inner_limit) {
+                         double *__restrict__ c_block, int size) {
 
   // Provides an alignment hint to the compiler. This enables the compiler
   // to safely generate aligned vectorized instructions (like AVX or NEON)
@@ -32,14 +29,15 @@ void MultiplyPackedBlock(const double *__restrict__ a_packed,
 
   // row-inner-col loop order maximizes spatial locality within the packed
   // blocks.
-  for (int row = 0; row < row_limit; ++row) {
-    for (int inner = 0; inner < inner_limit; ++inner) {
-      double a_val = a_packed[row * kBlockSize + inner];
+  for (int row = 0; row < kTileSize; ++row) {
+    double *c_row = &c_block[row * size];
+    for (int inner = 0; inner < kTileSize; ++inner) {
+      double a_val = a_packed[row * kTileSize + inner];
       // The 'col' loop accesses contiguous memory, making it ideal for
       // auto-vectorization
-      for (int col = 0; col < col_limit; ++col) {
-        C[(row_block + row) * columns + (col_block + col)] +=
-            a_val * b_packed[inner * kBlockSize + col];
+      const double *b_row = &b_packed[inner * kTileSize];
+      for (int col = 0; col < kTileSize; ++col) {
+        c_row[col] += a_val * b_row[col];
       }
     }
   }
@@ -53,54 +51,52 @@ void MultiplyPackedBlock(const double *__restrict__ a_packed,
  * While packing adds a small overhead, it vastly speeds up the intensive
  * multiplication kernel.
  */
-void PackA(double *__restrict__ dest, const double *__restrict__ src,
-           int row_start, int inner_start, int inners, int row_limit,
-           int inner_limit) {
-  for (int row = 0; row < row_limit; ++row) {
-    std::memcpy(&dest[row * kBlockSize],
-                &src[(row_start + row) * inners + inner_start],
-                inner_limit * sizeof(double));
+void PackA(double *__restrict__ dest, const double *__restrict__ src, int size,
+           int row_start, int inner_start) {
+  for (int row = 0; row < kTileSize; ++row) {
+    std::memcpy(&dest[row * kTileSize],
+                &src[(row_start + row) * size + inner_start],
+                kTileSize * sizeof(double));
   }
 }
 
-void PackB(double *__restrict__ dest, const double *__restrict__ src,
-           int inner_start, int col_start, int columns, int inner_limit,
-           int col_limit) {
-  for (int inner = 0; inner < inner_limit; ++inner) {
-    std::memcpy(&dest[inner * kBlockSize],
-                &src[(inner_start + inner) * columns + col_start],
-                col_limit * sizeof(double));
+void PackB(double *__restrict__ dest, const double *__restrict__ src, int size,
+           int inner_start, int col_start) {
+  for (int inner = 0; inner < kTileSize; ++inner) {
+    std::memcpy(&dest[inner * kTileSize],
+                &src[(inner_start + inner) * size + col_start],
+                kTileSize * sizeof(double));
   }
 }
+
+} // namespace
 
 /**
  * @brief Tiled & Packed Matmul (Row-Major)
  */
 void Packed(const double *A, const double *B, double *C, int rows, int columns,
             int inners) {
+  assert(rows == columns);
+  assert(columns == inners);
+  const int size = rows;
+  assert(size % kTileSize == 0);
+
   // Allocate local buffers matching the tile size.
   // Allocated once and reused to minimize memory allocation overhead.
-  double *a_packed = AllocateAligned(kBlockSize * kBlockSize);
-  double *b_packed = AllocateAligned(kBlockSize * kBlockSize);
+  double *a_packed = AllocateAligned(kTileSize * kTileSize);
+  double *b_packed = AllocateAligned(kTileSize * kTileSize);
 
   // 3-level tiling loops
-  for (int row_block = 0; row_block < rows; row_block += kBlockSize) {
-    int row_limit = std::min(kBlockSize, rows - row_block);
-    for (int col_block = 0; col_block < columns; col_block += kBlockSize) {
-      int col_limit = std::min(kBlockSize, columns - col_block);
-      for (int inner_block = 0; inner_block < inners;
-           inner_block += kBlockSize) {
-        int inner_limit = std::min(kBlockSize, inners - inner_block);
-
+  for (int row_block = 0; row_block < size; row_block += kTileSize) {
+    for (int col_block = 0; col_block < size; col_block += kTileSize) {
+      for (int inner_block = 0; inner_block < size; inner_block += kTileSize) {
         // Pack the current tiles into contiguous local buffers
-        PackA(a_packed, A, row_block, inner_block, inners, row_limit,
-              inner_limit);
-        PackB(b_packed, B, inner_block, col_block, columns, inner_limit,
-              col_limit);
+        PackA(a_packed, A, size, row_block, inner_block);
+        PackB(b_packed, B, size, inner_block, col_block);
 
         // Execute the fast kernel on the packed data
-        MultiplyPackedBlock(a_packed, b_packed, C, columns, row_block,
-                            col_block, row_limit, col_limit, inner_limit);
+        MultiplyPackedBlock(a_packed, b_packed,
+                            &C[row_block * size + col_block], size);
       }
     }
   }

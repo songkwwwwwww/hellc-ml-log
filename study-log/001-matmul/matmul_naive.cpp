@@ -1,4 +1,5 @@
 #include "matmul.h"
+#include <cassert>
 
 namespace matmul {
 
@@ -18,11 +19,14 @@ namespace matmul {
  */
 void Naive(const double *A, const double *B, double *C, int rows, int columns,
            int inners) {
-  for (int row = 0; row < rows; ++row) {
-    for (int col = 0; col < columns; ++col) {
-      for (int inner = 0; inner < inners; ++inner) {
-        C[row * columns + col] +=
-            A[row * inners + inner] * B[inner * columns + col];
+  assert(rows == columns);
+  assert(columns == inners);
+  const int size = rows;
+
+  for (int row = 0; row < size; ++row) {
+    for (int col = 0; col < size; ++col) {
+      for (int inner = 0; inner < size; ++inner) {
+        C[row * size + col] += A[row * size + inner] * B[inner * size + col];
       }
     }
   }
