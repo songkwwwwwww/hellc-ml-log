@@ -1,4 +1,5 @@
 #include "matmul.h"
+#include <algorithm>
 #include <cassert>
 
 namespace matmul {
@@ -30,18 +31,14 @@ void Tiled1D(const double *A, const double *B, double *C, int rows, int columns,
              int inners) {
   assert(rows == columns);
   assert(columns == inners);
-  const int size = rows;
-  assert(size % kTileSize == 0);
 
-  for (int inner_tile = 0; inner_tile < size; inner_tile += kTileSize) {
-    for (int row = 0; row < size; ++row) {
-      const double *a_row = &A[row * size + inner_tile];
-      double *c_row = &C[row * size];
-      for (int inner = 0; inner < kTileSize; ++inner) {
-        const double a_value = a_row[inner];
-        const double *b_row = &B[(inner_tile + inner) * size];
-        for (int col = 0; col < size; ++col) {
-          c_row[col] += a_value * b_row[col];
+  for (int inner_tile = 0; inner_tile < inners; inner_tile += kTileSize) {
+    for (int row = 0; row < rows; row++) {
+      int inner_tile_end = std::min(inners, inner_tile + kTileSize);
+      for (int inner = inner_tile; inner < inner_tile_end; inner++) {
+        double a = A[row * inners + inner];
+        for (int column = 0; column < columns; column++) {
+          C[row * columns + column] += a * B[inner * columns + column];
         }
       }
     }

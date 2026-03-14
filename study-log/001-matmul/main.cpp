@@ -9,7 +9,10 @@ using namespace matmul;
 
 void PrintUsage(char *prog) {
   std::cout << "Usage: " << prog << " <type> <size> <iters>\n";
-  std::cout << "  type  : naive, tiled, simd, ref\n";
+  std::cout << "  type  : naive, naive_reg, reorder, tiled1d, tiledmd, simd, "
+               "packed, \n";
+  std::cout << "          omp, omp_simd, omp_packed, omp_packed_simd, "
+               "omp_packed_reg, ref\n";
   std::cout << "  size  : matrix dimension (N x N)\n";
   std::cout << "  iters : number of repetitions for profiling\n";
 }
@@ -30,10 +33,28 @@ int main(int argc, char **argv) {
   MatmulFunc func = nullptr;
   if (type == "naive")
     func = Naive;
-  else if (type == "tiled")
-    func = Tiled;
+  else if (type == "naive_reg")
+    func = NaiveRegisterAcc;
+  else if (type == "reorder")
+    func = LoopReorder;
+  else if (type == "tiled1d")
+    func = Tiled1D;
+  else if (type == "tiledmd")
+    func = TiledMD;
   else if (type == "simd")
     func = Simd;
+  else if (type == "packed")
+    func = Packed;
+  else if (type == "omp")
+    func = OmpThread;
+  else if (type == "omp_simd")
+    func = OmpThreadSimd;
+  else if (type == "omp_packed")
+    func = OmpThreadPacked;
+  else if (type == "omp_packed_simd")
+    func = OmpThreadPackedSimd;
+  else if (type == "omp_packed_reg")
+    func = OmpThreadPackedRegister;
   else if (type == "ref")
     func = Reference;
   else {
