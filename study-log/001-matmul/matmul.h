@@ -45,6 +45,8 @@ void OmpThreadPacked(const double *A, const double *B, double *C, int rows,
                      int columns, int inners);
 void OmpThreadPackedSimd(const double *A, const double *B, double *C, int rows,
                          int columns, int inners);
+void OmpThreadPackedRow(const double *A, const double *B, double *C, int rows,
+                        int columns, int inners);
 void OmpThreadPackedRegister(const double *A, const double *B, double *C,
                              int rows, int columns, int inners);
 void Reference(const double *A, const double *B, double *C, int rows,

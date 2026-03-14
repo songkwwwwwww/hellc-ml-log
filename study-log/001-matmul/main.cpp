@@ -12,7 +12,7 @@ void PrintUsage(char *prog) {
   std::cout << "  type  : naive, naive_reg, reorder, tiled1d, tiledmd, simd, "
                "packed, \n";
   std::cout << "          omp, omp_simd, omp_packed, omp_packed_simd, "
-               "omp_packed_reg, ref\n";
+               "omp_packed_row, omp_packed_reg, ref\n";
   std::cout << "  size  : matrix dimension (N x N)\n";
   std::cout << "  iters : number of repetitions for profiling\n";
 }
@@ -53,6 +53,8 @@ int main(int argc, char **argv) {
     func = OmpThreadPacked;
   else if (type == "omp_packed_simd")
     func = OmpThreadPackedSimd;
+  else if (type == "omp_packed_row")
+    func = OmpThreadPackedRow;
   else if (type == "omp_packed_reg")
     func = OmpThreadPackedRegister;
   else if (type == "ref")

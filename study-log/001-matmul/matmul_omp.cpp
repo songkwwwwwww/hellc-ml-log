@@ -12,12 +12,12 @@ namespace {
 
 // These OpenMP study variants are intentionally specialized for one fixed
 // workload so the code can focus on the optimization idea itself.
-constexpr int kStudyMatrixSize = 2024;
+constexpr int kMatrixSize = 2024;
 constexpr int kTileSize = 88;
 constexpr int kRegisterRows = 4;
 constexpr int kRegisterCols = 8;
 
-static_assert(kStudyMatrixSize % kTileSize == 0);
+static_assert(kMatrixSize % kTileSize == 0);
 static_assert(kTileSize % kRegisterRows == 0);
 static_assert(kTileSize % kRegisterCols == 0);
 
@@ -26,21 +26,20 @@ using TileKernel = void (*)(const double *A, const double *B, double *C,
 using PackedKernel = void (*)(const double *a_packed, const double *b_packed,
                               double *c_block);
 
-inline void CheckStudyMatrixSize(int rows, int columns, int inners) {
-  assert(rows == kStudyMatrixSize);
-  assert(columns == kStudyMatrixSize);
-  assert(inners == kStudyMatrixSize);
+inline void CheckMatrixSize(int rows, int columns, int inners) {
+  assert(rows == kMatrixSize);
+  assert(columns == kMatrixSize);
+  assert(inners == kMatrixSize);
 }
 
 inline void MultiplyTileScalar(const double *A, const double *B, double *C,
                                int row_block, int col_block, int inner_block) {
   for (int row = 0; row < kTileSize; ++row) {
-    double *c_row = &C[(row_block + row) * kStudyMatrixSize + col_block];
+    double *c_row = &C[(row_block + row) * kMatrixSize + col_block];
     for (int inner = 0; inner < kTileSize; ++inner) {
       const double a_value =
-          A[(row_block + row) * kStudyMatrixSize + inner_block + inner];
-      const double *b_row =
-          &B[(inner_block + inner) * kStudyMatrixSize + col_block];
+          A[(row_block + row) * kMatrixSize + inner_block + inner];
+      const double *b_row = &B[(inner_block + inner) * kMatrixSize + col_block];
       for (int col = 0; col < kTileSize; ++col) {
         c_row[col] += a_value * b_row[col];
       }
@@ -51,12 +50,11 @@ inline void MultiplyTileScalar(const double *A, const double *B, double *C,
 inline void MultiplyTileSimd(const double *A, const double *B, double *C,
                              int row_block, int col_block, int inner_block) {
   for (int row = 0; row < kTileSize; ++row) {
-    double *c_row = &C[(row_block + row) * kStudyMatrixSize + col_block];
+    double *c_row = &C[(row_block + row) * kMatrixSize + col_block];
     for (int inner = 0; inner < kTileSize; ++inner) {
       const double a_value =
-          A[(row_block + row) * kStudyMatrixSize + inner_block + inner];
-      const double *b_row =
-          &B[(inner_block + inner) * kStudyMatrixSize + col_block];
+          A[(row_block + row) * kMatrixSize + inner_block + inner];
+      const double *b_row = &B[(inner_block + inner) * kMatrixSize + col_block];
 #if defined(__ARM_NEON)
       const float64x2_t a_vec = vmovq_n_f64(a_value);
       for (int col = 0; col < kTileSize; col += 2) {
@@ -78,7 +76,7 @@ inline void PackATile(double *dest, const double *src, int row_block,
                       int inner_block) {
   for (int row = 0; row < kTileSize; ++row) {
     std::memcpy(&dest[row * kTileSize],
-                &src[(row_block + row) * kStudyMatrixSize + inner_block],
+                &src[(row_block + row) * kMatrixSize + inner_block],
                 kTileSize * sizeof(double));
   }
 }
@@ -87,7 +85,7 @@ inline void PackBTile(double *dest, const double *src, int inner_block,
                       int col_block) {
   for (int inner = 0; inner < kTileSize; ++inner) {
     std::memcpy(&dest[inner * kTileSize],
-                &src[(inner_block + inner) * kStudyMatrixSize + col_block],
+                &src[(inner_block + inner) * kMatrixSize + col_block],
                 kTileSize * sizeof(double));
   }
 }
@@ -96,7 +94,7 @@ inline void MultiplyPackedTileScalar(const double *a_packed,
                                      const double *b_packed, double *c_block) {
   for (int row = 0; row < kTileSize; ++row) {
     const double *a_row = &a_packed[row * kTileSize];
-    double *c_row = &c_block[row * kStudyMatrixSize];
+    double *c_row = &c_block[row * kMatrixSize];
     for (int inner = 0; inner < kTileSize; ++inner) {
       const double a_value = a_row[inner];
       const double *b_row = &b_packed[inner * kTileSize];
@@ -116,7 +114,7 @@ inline void MultiplyPackedTileSimd(const double *a_packed,
 
   for (int row = 0; row < kTileSize; ++row) {
     const double *a_row = &a_packed[row * kTileSize];
-    double *c_row = &c_block[row * kStudyMatrixSize];
+    double *c_row = &c_block[row * kMatrixSize];
     for (int inner = 0; inner < kTileSize; ++inner) {
       const double a_value = a_row[inner];
       const double *b_row = &b_packed[inner * kTileSize];
@@ -141,7 +139,7 @@ inline void PackARegisterPanel(double *dest, const double *src, int row_block,
                                int inner_block) {
   for (int row = 0; row < kRegisterRows; ++row) {
     std::memcpy(&dest[row * kTileSize],
-                &src[(row_block + row) * kStudyMatrixSize + inner_block],
+                &src[(row_block + row) * kMatrixSize + inner_block],
                 kTileSize * sizeof(double));
   }
 }
@@ -150,7 +148,7 @@ inline void PackBRegisterPanel(double *dest, const double *src, int inner_block,
                                int col_block) {
   for (int inner = 0; inner < kTileSize; ++inner) {
     std::memcpy(&dest[inner * kRegisterCols],
-                &src[(inner_block + inner) * kStudyMatrixSize + col_block],
+                &src[(inner_block + inner) * kMatrixSize + col_block],
                 kRegisterCols * sizeof(double));
   }
 }
@@ -160,7 +158,7 @@ MultiplyPackedRegister4x8Scalar(const double *a_panel, const double *b_panel,
                                 double *c_block) {
   for (int row = 0; row < kRegisterRows; ++row) {
     const double *a_row = &a_panel[row * kTileSize];
-    double *c_row = &c_block[row * kStudyMatrixSize];
+    double *c_row = &c_block[row * kMatrixSize];
     for (int inner = 0; inner < kTileSize; ++inner) {
       const double a_value = a_row[inner];
       const double *b_row = &b_panel[inner * kRegisterCols];
@@ -186,18 +184,18 @@ inline void MultiplyPackedRegister4x8(const double *a_panel,
   float64x2_t c01 = vld1q_f64(&c_block[2]);
   float64x2_t c02 = vld1q_f64(&c_block[4]);
   float64x2_t c03 = vld1q_f64(&c_block[6]);
-  float64x2_t c10 = vld1q_f64(&c_block[kStudyMatrixSize + 0]);
-  float64x2_t c11 = vld1q_f64(&c_block[kStudyMatrixSize + 2]);
-  float64x2_t c12 = vld1q_f64(&c_block[kStudyMatrixSize + 4]);
-  float64x2_t c13 = vld1q_f64(&c_block[kStudyMatrixSize + 6]);
-  float64x2_t c20 = vld1q_f64(&c_block[2 * kStudyMatrixSize + 0]);
-  float64x2_t c21 = vld1q_f64(&c_block[2 * kStudyMatrixSize + 2]);
-  float64x2_t c22 = vld1q_f64(&c_block[2 * kStudyMatrixSize + 4]);
-  float64x2_t c23 = vld1q_f64(&c_block[2 * kStudyMatrixSize + 6]);
-  float64x2_t c30 = vld1q_f64(&c_block[3 * kStudyMatrixSize + 0]);
-  float64x2_t c31 = vld1q_f64(&c_block[3 * kStudyMatrixSize + 2]);
-  float64x2_t c32 = vld1q_f64(&c_block[3 * kStudyMatrixSize + 4]);
-  float64x2_t c33 = vld1q_f64(&c_block[3 * kStudyMatrixSize + 6]);
+  float64x2_t c10 = vld1q_f64(&c_block[kMatrixSize + 0]);
+  float64x2_t c11 = vld1q_f64(&c_block[kMatrixSize + 2]);
+  float64x2_t c12 = vld1q_f64(&c_block[kMatrixSize + 4]);
+  float64x2_t c13 = vld1q_f64(&c_block[kMatrixSize + 6]);
+  float64x2_t c20 = vld1q_f64(&c_block[2 * kMatrixSize + 0]);
+  float64x2_t c21 = vld1q_f64(&c_block[2 * kMatrixSize + 2]);
+  float64x2_t c22 = vld1q_f64(&c_block[2 * kMatrixSize + 4]);
+  float64x2_t c23 = vld1q_f64(&c_block[2 * kMatrixSize + 6]);
+  float64x2_t c30 = vld1q_f64(&c_block[3 * kMatrixSize + 0]);
+  float64x2_t c31 = vld1q_f64(&c_block[3 * kMatrixSize + 2]);
+  float64x2_t c32 = vld1q_f64(&c_block[3 * kMatrixSize + 4]);
+  float64x2_t c33 = vld1q_f64(&c_block[3 * kMatrixSize + 6]);
 
   for (int inner = 0; inner < kTileSize; ++inner) {
     const double *b_row = &b_panel[inner * kRegisterCols];
@@ -233,18 +231,18 @@ inline void MultiplyPackedRegister4x8(const double *a_panel,
   vst1q_f64(&c_block[2], c01);
   vst1q_f64(&c_block[4], c02);
   vst1q_f64(&c_block[6], c03);
-  vst1q_f64(&c_block[kStudyMatrixSize + 0], c10);
-  vst1q_f64(&c_block[kStudyMatrixSize + 2], c11);
-  vst1q_f64(&c_block[kStudyMatrixSize + 4], c12);
-  vst1q_f64(&c_block[kStudyMatrixSize + 6], c13);
-  vst1q_f64(&c_block[2 * kStudyMatrixSize + 0], c20);
-  vst1q_f64(&c_block[2 * kStudyMatrixSize + 2], c21);
-  vst1q_f64(&c_block[2 * kStudyMatrixSize + 4], c22);
-  vst1q_f64(&c_block[2 * kStudyMatrixSize + 6], c23);
-  vst1q_f64(&c_block[3 * kStudyMatrixSize + 0], c30);
-  vst1q_f64(&c_block[3 * kStudyMatrixSize + 2], c31);
-  vst1q_f64(&c_block[3 * kStudyMatrixSize + 4], c32);
-  vst1q_f64(&c_block[3 * kStudyMatrixSize + 6], c33);
+  vst1q_f64(&c_block[kMatrixSize + 0], c10);
+  vst1q_f64(&c_block[kMatrixSize + 2], c11);
+  vst1q_f64(&c_block[kMatrixSize + 4], c12);
+  vst1q_f64(&c_block[kMatrixSize + 6], c13);
+  vst1q_f64(&c_block[2 * kMatrixSize + 0], c20);
+  vst1q_f64(&c_block[2 * kMatrixSize + 2], c21);
+  vst1q_f64(&c_block[2 * kMatrixSize + 4], c22);
+  vst1q_f64(&c_block[2 * kMatrixSize + 6], c23);
+  vst1q_f64(&c_block[3 * kMatrixSize + 0], c30);
+  vst1q_f64(&c_block[3 * kMatrixSize + 2], c31);
+  vst1q_f64(&c_block[3 * kMatrixSize + 4], c32);
+  vst1q_f64(&c_block[3 * kMatrixSize + 6], c33);
 #else
   MultiplyPackedRegister4x8Scalar(a_panel, b_panel, c_block);
 #endif
@@ -254,11 +252,9 @@ void RunOmpTiled(const double *A, const double *B, double *C,
                  TileKernel kernel) {
 #pragma omp parallel for default(none) shared(A, B, C, kernel) collapse(2)     \
     schedule(static)
-  for (int row_block = 0; row_block < kStudyMatrixSize;
-       row_block += kTileSize) {
-    for (int col_block = 0; col_block < kStudyMatrixSize;
-         col_block += kTileSize) {
-      for (int inner_block = 0; inner_block < kStudyMatrixSize;
+  for (int row_block = 0; row_block < kMatrixSize; row_block += kTileSize) {
+    for (int col_block = 0; col_block < kMatrixSize; col_block += kTileSize) {
+      for (int inner_block = 0; inner_block < kMatrixSize;
            inner_block += kTileSize) {
         kernel(A, B, C, row_block, col_block, inner_block);
       }
@@ -274,12 +270,33 @@ void RunOmpPacked(const double *A, const double *B, double *C,
     alignas(64) double b_packed[kTileSize * kTileSize];
 
 #pragma omp for collapse(2) schedule(static)
-    for (int row_block = 0; row_block < kStudyMatrixSize;
-         row_block += kTileSize) {
-      for (int col_block = 0; col_block < kStudyMatrixSize;
-           col_block += kTileSize) {
-        double *c_block = &C[row_block * kStudyMatrixSize + col_block];
-        for (int inner_block = 0; inner_block < kStudyMatrixSize;
+    for (int row_block = 0; row_block < kMatrixSize; row_block += kTileSize) {
+      for (int col_block = 0; col_block < kMatrixSize; col_block += kTileSize) {
+        double *c_block = &C[row_block * kMatrixSize + col_block];
+        for (int inner_block = 0; inner_block < kMatrixSize;
+             inner_block += kTileSize) {
+          PackATile(a_packed, A, row_block, inner_block);
+          PackBTile(b_packed, B, inner_block, col_block);
+          kernel(a_packed, b_packed, c_block);
+        }
+      }
+    }
+  }
+}
+
+void RunOmpPackedRow(const double *A, const double *B, double *C,
+                     PackedKernel kernel) {
+#pragma omp parallel default(none) shared(A, B, C, kernel)
+  {
+    alignas(64) double a_packed[kTileSize * kTileSize];
+    alignas(64) double b_packed[kTileSize * kTileSize];
+
+    // collapse(2) 대신 row_block만 병렬화
+#pragma omp for schedule(static)
+    for (int row_block = 0; row_block < kMatrixSize; row_block += kTileSize) {
+      for (int col_block = 0; col_block < kMatrixSize; col_block += kTileSize) {
+        double *c_block = &C[row_block * kMatrixSize + col_block];
+        for (int inner_block = 0; inner_block < kMatrixSize;
              inner_block += kTileSize) {
           PackATile(a_packed, A, row_block, inner_block);
           PackBTile(b_packed, B, inner_block, col_block);
@@ -297,11 +314,9 @@ void RunOmpPackedRegister(const double *A, const double *B, double *C) {
     alignas(64) double b_panel[kTileSize * kRegisterCols];
 
 #pragma omp for collapse(2) schedule(static)
-    for (int row_block = 0; row_block < kStudyMatrixSize;
-         row_block += kTileSize) {
-      for (int col_block = 0; col_block < kStudyMatrixSize;
-           col_block += kTileSize) {
-        for (int inner_block = 0; inner_block < kStudyMatrixSize;
+    for (int row_block = 0; row_block < kMatrixSize; row_block += kTileSize) {
+      for (int col_block = 0; col_block < kMatrixSize; col_block += kTileSize) {
+        for (int inner_block = 0; inner_block < kMatrixSize;
              inner_block += kTileSize) {
           for (int col_micro = col_block; col_micro < col_block + kTileSize;
                col_micro += kRegisterCols) {
@@ -310,8 +325,7 @@ void RunOmpPackedRegister(const double *A, const double *B, double *C) {
                  row_micro += kRegisterRows) {
               PackARegisterPanel(a_panel, A, row_micro, inner_block);
               MultiplyPackedRegister4x8(
-                  a_panel, b_panel,
-                  &C[row_micro * kStudyMatrixSize + col_micro]);
+                  a_panel, b_panel, &C[row_micro * kMatrixSize + col_micro]);
             }
           }
         }
@@ -324,31 +338,37 @@ void RunOmpPackedRegister(const double *A, const double *B, double *C) {
 
 void OmpThread(const double *A, const double *B, double *C, int rows,
                int columns, int inners) {
-  CheckStudyMatrixSize(rows, columns, inners);
+  CheckMatrixSize(rows, columns, inners);
   RunOmpTiled(A, B, C, MultiplyTileScalar);
 }
 
 void OmpThreadSimd(const double *A, const double *B, double *C, int rows,
                    int columns, int inners) {
-  CheckStudyMatrixSize(rows, columns, inners);
+  CheckMatrixSize(rows, columns, inners);
   RunOmpTiled(A, B, C, MultiplyTileSimd);
 }
 
 void OmpThreadPacked(const double *A, const double *B, double *C, int rows,
                      int columns, int inners) {
-  CheckStudyMatrixSize(rows, columns, inners);
+  CheckMatrixSize(rows, columns, inners);
   RunOmpPacked(A, B, C, MultiplyPackedTileScalar);
 }
 
 void OmpThreadPackedSimd(const double *A, const double *B, double *C, int rows,
                          int columns, int inners) {
-  CheckStudyMatrixSize(rows, columns, inners);
+  CheckMatrixSize(rows, columns, inners);
   RunOmpPacked(A, B, C, MultiplyPackedTileSimd);
+}
+
+void OmpThreadPackedRow(const double *A, const double *B, double *C, int rows,
+                        int columns, int inners) {
+  CheckMatrixSize(rows, columns, inners);
+  RunOmpPackedRow(A, B, C, MultiplyPackedTileSimd);
 }
 
 void OmpThreadPackedRegister(const double *A, const double *B, double *C,
                              int rows, int columns, int inners) {
-  CheckStudyMatrixSize(rows, columns, inners);
+  CheckMatrixSize(rows, columns, inners);
   RunOmpPackedRegister(A, B, C);
 }
 
