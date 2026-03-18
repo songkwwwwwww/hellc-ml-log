@@ -6,4 +6,4 @@ This study focuses on understanding the low-level (C++) mechanisms of deep learn
 - `src/`: Core inference engine logic implementation (for learning).
 
 ## References
-- [](https://github.com/MichalPitr/inference_engine)
+- [C++ Inference Engine from scratch, Michal Pitr](https://github.com/MichalPitr/inference_engine)
