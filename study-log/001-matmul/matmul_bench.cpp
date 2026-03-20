@@ -73,6 +73,7 @@ REGISTER_BENCHMARK(OmpThread, OmpThread);
 REGISTER_BENCHMARK(OmpThreadSimd, OmpThreadSimd);
 REGISTER_BENCHMARK(OmpThreadPacked, OmpThreadPacked);
 REGISTER_BENCHMARK(OmpThreadPackedSimd, OmpThreadPackedSimd);
+REGISTER_BENCHMARK(OmpThreadPackedRow, OmpThreadPackedRow);
 REGISTER_BENCHMARK(OmpThreadPackedRegister, OmpThreadPackedRegister);
 REGISTER_BENCHMARK(Reference, Reference);
 

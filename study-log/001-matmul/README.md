@@ -11,16 +11,19 @@ size, so the teaching code can avoid remainder-handling branches.
 ## Implementations
 
 1. **`matmul_naive.cpp`**: The standard $O(N^3)$ triple-nested loop implementation without any optimizations.
-2. **`matmul_loop_reorder.cpp`**: Optimizes memory access patterns (spatial locality) by reordering loops from `row-col-inner` to `row-inner-col`.
-3. **`matmul_tiled.cpp`**: Introduces block-tiling to improve Cache hit rates by keeping active sub-matrices within the L1/L2 cache.
-4. **`matmul_packed.cpp`**: Packs matrix tiles into continuous memory buffers to minimize TLB (Translation Lookaside Buffer) misses and cache conflicts.
-5. **`matmul_simd.cpp`**: Utilizes ARM NEON Intrinsics to compute multiple data points in a single instruction cycle (Vectorization).
-6. **`matmul_omp.cpp` / `OmpThread`**: A cache-tiled OpenMP baseline specialized for the fixed `2024 x 2024 x 2024` study workload, so the code can stay focused on the threading idea.
-7. **`matmul_omp.cpp` / `OmpThreadSimd`**: Adds an explicit SIMD micro-kernel inside each OpenMP tile while keeping the same fixed-size study assumption.
-8. **`matmul_omp.cpp` / `OmpThreadPacked`**: Packs per-thread `A`/`B` tiles into contiguous scratch buffers before multiplying them to reduce strided memory traffic.
-9. **`matmul_omp.cpp` / `OmpThreadPackedSimd`**: Combines OpenMP tiling, per-thread packing, and SIMD in the micro-kernel to study the stacked effect of all three optimizations.
-10. **`matmul_omp.cpp` / `OmpThreadPackedRegister`**: Uses a packed `4x8` register-blocked micro-kernel so each thread accumulates a small `C` tile in NEON registers before writing it back.
-11. **`matmul_reference.cpp`**: Wraps the highly-optimized system BLAS library (e.g., Apple Accelerate Framework or OpenBLAS) for ground-truth correctness and baseline performance comparisons.
+2. **`matmul_naive_register_acc.cpp`**: Keeps the basic loop nest but accumulates each output element in a register before storing it back to memory.
+3. **`matmul_loop_reorder.cpp`**: Optimizes memory access patterns (spatial locality) by reordering loops from `row-col-inner` to `row-inner-col`.
+4. **`matmul_tiled_1d.cpp`**: Adds a simple 1D tile/blocking strategy to improve cache reuse while keeping the control flow approachable.
+5. **`matmul_tiled_md.cpp`**: Extends tiling across multiple dimensions for a more realistic cache-blocked study variant.
+6. **`matmul_packed.cpp`**: Packs matrix tiles into continuous memory buffers to minimize TLB (Translation Lookaside Buffer) misses and cache conflicts.
+7. **`matmul_simd.cpp`**: Utilizes ARM NEON Intrinsics to compute multiple data points in a single instruction cycle (Vectorization).
+8. **`matmul_omp.cpp` / `OmpThread`**: A cache-tiled OpenMP baseline specialized for the fixed `2024 x 2024 x 2024` study workload, so the code can stay focused on the threading idea.
+9. **`matmul_omp.cpp` / `OmpThreadSimd`**: Adds an explicit SIMD micro-kernel inside each OpenMP tile while keeping the same fixed-size study assumption.
+10. **`matmul_omp.cpp` / `OmpThreadPacked`**: Packs per-thread `A`/`B` tiles into contiguous scratch buffers before multiplying them to reduce strided memory traffic.
+11. **`matmul_omp.cpp` / `OmpThreadPackedSimd`**: Combines OpenMP tiling, per-thread packing, and SIMD in the micro-kernel to study the stacked effect of all three optimizations.
+12. **`matmul_omp.cpp` / `OmpThreadPackedRow`**: Uses the packed SIMD tile kernel but parallelizes only across row blocks to compare scheduling behavior against the `collapse(2)` variants.
+13. **`matmul_omp.cpp` / `OmpThreadPackedRegister`**: Uses a packed `4x8` register-blocked micro-kernel so each thread accumulates a small `C` tile in NEON registers before writing it back.
+14. **`matmul_reference.cpp`**: Wraps the highly-optimized system BLAS library (e.g., Apple Accelerate Framework or OpenBLAS) for ground-truth correctness and baseline performance comparisons.
 
 ## Prerequisites
 
@@ -54,7 +57,7 @@ Bazel automatically.
 ## How to Run
 
 ### Run Correctness Tests
-Validates that all custom algorithms compute the correct matrix products against the reference implementation.
+Validates that all currently wired custom algorithms compute the correct matrix products against the reference implementation.
 ```bash
 bazel test //study-log/001-matmul:matmul_test
 ```
@@ -86,7 +89,8 @@ The benchmark results below were collected on an Apple M4 Mac mini.
 Performance numbers are hardware-, compiler-, and build-option-dependent, so
 results will vary on other machines. The sample output below is an older
 `2048 x 2048` run, so rerun the benchmark commands above for the current
-`2024 x 2024` setup.
+`2024 x 2024` setup. The sample output also predates some implementation
+renames and additions, so treat it as illustrative rather than exhaustive.
 
 ```
 Run on (10 X 24 MHz CPU s)

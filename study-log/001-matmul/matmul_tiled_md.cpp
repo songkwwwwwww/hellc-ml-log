@@ -49,8 +49,8 @@ void TiledMD(const double *A, const double *B, double *C, int rows, int columns,
   assert(size % kTileSize == 0);
 
   for (int row_block = 0; row_block < size; row_block += kTileSize) {
-    for (int col_block = 0; col_block < size; col_block += kTileSize) {
-      for (int inner_block = 0; inner_block < size; inner_block += kTileSize) {
+    for (int inner_block = 0; inner_block < size; inner_block += kTileSize) {
+      for (int col_block = 0; col_block < size; col_block += kTileSize) {
         MultiplyTile(A, B, C, size, row_block, col_block, inner_block);
       }
     }

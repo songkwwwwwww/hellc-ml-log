@@ -107,6 +107,7 @@ TEST(MatmulOpenMpStudyTest, Fixed2024SquareMatrixCorrectness) {
       {"OmpThreadSimd", OmpThreadSimd},
       {"OmpThreadPacked", OmpThreadPacked},
       {"OmpThreadPackedSimd", OmpThreadPackedSimd},
+      {"OmpThreadPackedRow", OmpThreadPackedRow},
       {"OmpThreadPackedRegister", OmpThreadPackedRegister},
   };
 
