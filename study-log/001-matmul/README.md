@@ -17,7 +17,7 @@ size, so the teaching code can avoid remainder-handling branches.
 5. **`matmul_tiled_md.cpp`**: Extends tiling across multiple dimensions for a more realistic cache-blocked study variant.
 6. **`matmul_packed.cpp`**: Packs matrix tiles into continuous memory buffers to minimize TLB (Translation Lookaside Buffer) misses and cache conflicts.
 7. **`matmul_simd.cpp`**: Utilizes ARM NEON Intrinsics to compute multiple data points in a single instruction cycle (Vectorization).
-8. **`matmul_omp.cpp` / `OmpThread`**: A cache-tiled OpenMP baseline specialized for the fixed `2024 x 2024 x 2024` study workload, so the code can stay focused on the threading idea.
+8. **`matmul_omp.cpp` / `OmpThread`**: A cache-tiled OpenMP baseline specialized for the fixed `2048 x 2048 x 2048` study workload, so the code can stay focused on the threading idea.
 9. **`matmul_omp.cpp` / `OmpThreadSimd`**: Adds an explicit SIMD micro-kernel inside each OpenMP tile while keeping the same fixed-size study assumption.
 10. **`matmul_omp.cpp` / `OmpThreadPacked`**: Packs per-thread `A`/`B` tiles into contiguous scratch buffers before multiplying them to reduce strided memory traffic.
 11. **`matmul_omp.cpp` / `OmpThreadPackedSimd`**: Combines OpenMP tiling, per-thread packing, and SIMD in the micro-kernel to study the stacked effect of all three optimizations.
@@ -61,7 +61,7 @@ Validates that all currently wired custom algorithms compute the correct matrix 
 ```bash
 bazel test //study-log/001-matmul:matmul_test
 ```
-The OpenMP variants are intentionally checked on the fixed `2024 x 2024`
+The OpenMP variants are intentionally checked on the fixed `2048 x 2048`
 study workload because their code path now drops ragged-tile handling for
 readability.
 
@@ -70,7 +70,7 @@ Measures the GFLOPS (Giga-Floating Point Operations Per Second) of each method u
 ```bash
 bazel run -c opt //study-log/001-matmul:matmul_bench
 ```
-The benchmark target now uses one fixed `2024 x 2024` input size so the OpenMP
+The benchmark target now uses one fixed `2048 x 2048` input size so the OpenMP
 study variants and the simpler teaching code stay aligned.
 
 To filter and benchmark a specific algorithm:
@@ -87,9 +87,7 @@ bazel run -c opt //study-log/001-matmul:matmul_bench -- --benchmark_filter="OmpT
 
 The benchmark results below were collected on an Apple M4 Mac mini.
 Performance numbers are hardware-, compiler-, and build-option-dependent, so
-results will vary on other machines. The sample output below is an older
-`2048 x 2048` run, so rerun the benchmark commands above for the current
-`2024 x 2024` setup. The sample output also predates some implementation
+results will vary on other machines. The sample output also predates some implementation
 renames and additions, so treat it as illustrative rather than exhaustive.
 
 ```
@@ -102,19 +100,19 @@ Load Average: 1.79, 1.64, 1.66
 -------------------------------------------------------------------------------------------------------
 Benchmark                                             Time             CPU   Iterations UserCounters...
 -------------------------------------------------------------------------------------------------------
-BenchmarkMatmul/Naive/2024                         7188 ms         7188 ms            1 GFLOPS=2.30703G/s
-BenchmarkMatmul/NaiveRegisterAcc/2024              4051 ms         4050 ms            1 GFLOPS=4.09405G/s
-BenchmarkMatmul/LoopReorder/2024                    995 ms          995 ms            1 GFLOPS=16.6639G/s
-BenchmarkMatmul/Tiled1D/2024                       1001 ms         1001 ms            1 GFLOPS=16.5688G/s
-BenchmarkMatmul/TiledMD/2024                       1531 ms         1531 ms            1 GFLOPS=10.8294G/s
-BenchmarkMatmul/SIMD/2024                          1080 ms         1080 ms            1 GFLOPS=15.3517G/s
-BenchmarkMatmul/Packed/2024                         581 ms          581 ms            1 GFLOPS=28.5182G/s
-BenchmarkMatmul/OmpThread/2024                      199 ms          182 ms            4 GFLOPS=91.3331G/s
-BenchmarkMatmul/OmpThreadSimd/2024                  237 ms          209 ms            3 GFLOPS=79.2088G/s
-BenchmarkMatmul/OmpThreadPacked/2024                283 ms          260 ms            3 GFLOPS=63.6937G/s
-BenchmarkMatmul/OmpThreadPackedSimd/2024            211 ms          195 ms            4 GFLOPS=84.9529G/s
-BenchmarkMatmul/OmpThreadPackedRegister/2024       88.9 ms         75.4 ms           10 GFLOPS=219.906G/s
-BenchmarkMatmul/Reference/2024                     39.9 ms         39.9 ms           17 GFLOPS=415.385G/s
+BenchmarkMatmul/Naive/2048                         7188 ms         7188 ms            1 GFLOPS=2.30703G/s
+BenchmarkMatmul/NaiveRegisterAcc/2048              4051 ms         4050 ms            1 GFLOPS=4.09405G/s
+BenchmarkMatmul/LoopReorder/2048                    995 ms          995 ms            1 GFLOPS=16.6639G/s
+BenchmarkMatmul/Tiled1D/2048                       1001 ms         1001 ms            1 GFLOPS=16.5688G/s
+BenchmarkMatmul/TiledMD/2048                       1531 ms         1531 ms            1 GFLOPS=10.8294G/s
+BenchmarkMatmul/SIMD/2048                          1080 ms         1080 ms            1 GFLOPS=15.3517G/s
+BenchmarkMatmul/Packed/2048                         581 ms          581 ms            1 GFLOPS=28.5182G/s
+BenchmarkMatmul/OmpThread/2048                      199 ms          182 ms            4 GFLOPS=91.3331G/s
+BenchmarkMatmul/OmpThreadSimd/2048                  237 ms          209 ms            3 GFLOPS=79.2088G/s
+BenchmarkMatmul/OmpThreadPacked/2048                283 ms          260 ms            3 GFLOPS=63.6937G/s
+BenchmarkMatmul/OmpThreadPackedSimd/2048            211 ms          195 ms            4 GFLOPS=84.9529G/s
+BenchmarkMatmul/OmpThreadPackedRegister/2048       88.9 ms         75.4 ms           10 GFLOPS=219.906G/s
+BenchmarkMatmul/Reference/2048                     39.9 ms         39.9 ms           17 GFLOPS=415.385G/s
 ```
 
 ## References
