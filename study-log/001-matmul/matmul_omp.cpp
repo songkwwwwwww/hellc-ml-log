@@ -12,8 +12,8 @@ namespace {
 
 // These OpenMP study variants are intentionally specialized for one fixed
 // workload so the code can focus on the optimization idea itself.
-constexpr int kMatrixSize = 2024;
-constexpr int kTileSize = 88;
+constexpr int kMatrixSize = 2048;
+constexpr int kTileSize = 128;
 constexpr int kRegisterRows = 4;
 constexpr int kRegisterCols = 8;
 

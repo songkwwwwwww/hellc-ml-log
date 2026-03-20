@@ -100,19 +100,23 @@ Load Average: 1.79, 1.64, 1.66
 -------------------------------------------------------------------------------------------------------
 Benchmark                                             Time             CPU   Iterations UserCounters...
 -------------------------------------------------------------------------------------------------------
-BenchmarkMatmul/Naive/2048                         7188 ms         7188 ms            1 GFLOPS=2.30703G/s
-BenchmarkMatmul/NaiveRegisterAcc/2048              4051 ms         4050 ms            1 GFLOPS=4.09405G/s
-BenchmarkMatmul/LoopReorder/2048                    995 ms          995 ms            1 GFLOPS=16.6639G/s
-BenchmarkMatmul/Tiled1D/2048                       1001 ms         1001 ms            1 GFLOPS=16.5688G/s
-BenchmarkMatmul/TiledMD/2048                       1531 ms         1531 ms            1 GFLOPS=10.8294G/s
-BenchmarkMatmul/SIMD/2048                          1080 ms         1080 ms            1 GFLOPS=15.3517G/s
-BenchmarkMatmul/Packed/2048                         581 ms          581 ms            1 GFLOPS=28.5182G/s
-BenchmarkMatmul/OmpThread/2048                      199 ms          182 ms            4 GFLOPS=91.3331G/s
-BenchmarkMatmul/OmpThreadSimd/2048                  237 ms          209 ms            3 GFLOPS=79.2088G/s
-BenchmarkMatmul/OmpThreadPacked/2048                283 ms          260 ms            3 GFLOPS=63.6937G/s
-BenchmarkMatmul/OmpThreadPackedSimd/2048            211 ms          195 ms            4 GFLOPS=84.9529G/s
-BenchmarkMatmul/OmpThreadPackedRegister/2048       88.9 ms         75.4 ms           10 GFLOPS=219.906G/s
-BenchmarkMatmul/Reference/2048                     39.9 ms         39.9 ms           17 GFLOPS=415.385G/s
+-------------------------------------------------------------------------------------------------------
+Benchmark                                             Time             CPU   Iterations UserCounters...
+-------------------------------------------------------------------------------------------------------
+BenchmarkMatmul/Naive/2048                        20758 ms        20758 ms            1 GFLOPS=827.644M/s
+BenchmarkMatmul/NaiveRegisterAcc/2048             16552 ms        16552 ms            1 GFLOPS=1.03796G/s
+BenchmarkMatmul/LoopReorder/2048                   1042 ms         1042 ms            1 GFLOPS=16.4941G/s
+BenchmarkMatmul/Tiled1D/2048                       1039 ms         1039 ms            1 GFLOPS=16.5426G/s
+BenchmarkMatmul/TiledMD/2048                       1982 ms         1982 ms            1 GFLOPS=8.66827G/s
+BenchmarkMatmul/SIMD/2048                          1358 ms         1358 ms            1 GFLOPS=12.6491G/s
+BenchmarkMatmul/Packed/2048                         721 ms          721 ms            1 GFLOPS=23.8339G/s
+BenchmarkMatmul/OmpThread/2048                      261 ms          248 ms            3 GFLOPS=69.1824G/s
+BenchmarkMatmul/OmpThreadSimd/2048                  298 ms          268 ms            3 GFLOPS=64.0204G/s
+BenchmarkMatmul/OmpThreadPacked/2048                177 ms          167 ms            4 GFLOPS=102.585G/s
+BenchmarkMatmul/OmpThreadPackedSimd/2048            220 ms          213 ms            3 GFLOPS=80.6805G/s
+BenchmarkMatmul/OmpThreadPackedRow/2048             246 ms          237 ms            3 GFLOPS=72.3483G/s
+BenchmarkMatmul/OmpThreadPackedRegister/2048       99.9 ms         83.9 ms            7 GFLOPS=204.828G/s
+BenchmarkMatmul/Reference/2048                     42.2 ms         42.2 ms           17 GFLOPS=406.996G/s
 ```
 
 ## References

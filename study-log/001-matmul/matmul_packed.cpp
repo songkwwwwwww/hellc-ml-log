@@ -7,8 +7,6 @@ namespace matmul {
 
 namespace {
 
-constexpr int kTileSize = 88;
-
 /**
  * @brief Packed Block Multiplication Kernel
  *
@@ -29,14 +27,14 @@ void MultiplyPackedBlock(const double *__restrict__ a_packed,
 
   // row-inner-col loop order maximizes spatial locality within the packed
   // blocks.
-  for (int row = 0; row < kTileSize; ++row) {
+  for (int row = 0; row < kDefaultTileSize; ++row) {
     double *c_row = &c_block[row * size];
-    for (int inner = 0; inner < kTileSize; ++inner) {
-      double a_val = a_packed[row * kTileSize + inner];
+    for (int inner = 0; inner < kDefaultTileSize; ++inner) {
+      double a_val = a_packed[row * kDefaultTileSize + inner];
       // The 'col' loop accesses contiguous memory, making it ideal for
       // auto-vectorization
-      const double *b_row = &b_packed[inner * kTileSize];
-      for (int col = 0; col < kTileSize; ++col) {
+      const double *b_row = &b_packed[inner * kDefaultTileSize];
+      for (int col = 0; col < kDefaultTileSize; ++col) {
         c_row[col] += a_val * b_row[col];
       }
     }
@@ -53,19 +51,19 @@ void MultiplyPackedBlock(const double *__restrict__ a_packed,
  */
 void PackA(double *__restrict__ dest, const double *__restrict__ src, int size,
            int row_start, int inner_start) {
-  for (int row = 0; row < kTileSize; ++row) {
-    std::memcpy(&dest[row * kTileSize],
+  for (int row = 0; row < kDefaultTileSize; ++row) {
+    std::memcpy(&dest[row * kDefaultTileSize],
                 &src[(row_start + row) * size + inner_start],
-                kTileSize * sizeof(double));
+                kDefaultTileSize * sizeof(double));
   }
 }
 
 void PackB(double *__restrict__ dest, const double *__restrict__ src, int size,
            int inner_start, int col_start) {
-  for (int inner = 0; inner < kTileSize; ++inner) {
-    std::memcpy(&dest[inner * kTileSize],
+  for (int inner = 0; inner < kDefaultTileSize; ++inner) {
+    std::memcpy(&dest[inner * kDefaultTileSize],
                 &src[(inner_start + inner) * size + col_start],
-                kTileSize * sizeof(double));
+                kDefaultTileSize * sizeof(double));
   }
 }
 
@@ -79,17 +77,18 @@ void Packed(const double *A, const double *B, double *C, int rows, int columns,
   assert(rows == columns);
   assert(columns == inners);
   const int size = rows;
-  assert(size % kTileSize == 0);
+  assert(size % kDefaultTileSize == 0);
 
   // Allocate local buffers matching the tile size.
   // Allocated once and reused to minimize memory allocation overhead.
-  double *a_packed = AllocateAligned(kTileSize * kTileSize);
-  double *b_packed = AllocateAligned(kTileSize * kTileSize);
+  double *a_packed = AllocateAligned(kDefaultTileSize * kDefaultTileSize);
+  double *b_packed = AllocateAligned(kDefaultTileSize * kDefaultTileSize);
 
   // 3-level tiling loops
-  for (int row_block = 0; row_block < size; row_block += kTileSize) {
-    for (int col_block = 0; col_block < size; col_block += kTileSize) {
-      for (int inner_block = 0; inner_block < size; inner_block += kTileSize) {
+  for (int row_block = 0; row_block < size; row_block += kDefaultTileSize) {
+    for (int col_block = 0; col_block < size; col_block += kDefaultTileSize) {
+      for (int inner_block = 0; inner_block < size;
+           inner_block += kDefaultTileSize) {
         // Pack the current tiles into contiguous local buffers
         PackA(a_packed, A, size, row_block, inner_block);
         PackB(b_packed, B, size, inner_block, col_block);

@@ -22,6 +22,9 @@ namespace matmul {
 typedef void (*MatmulFunc)(const double *A, const double *B, double *C,
                            int rows, int columns, int inners);
 
+// Common configuration for tile-based optimizations
+constexpr int kDefaultTileSize = 64;
+
 // Implementations of matrix multiplication with various optimization techniques
 void Naive(const double *A, const double *B, double *C, int rows, int columns,
            int inners);

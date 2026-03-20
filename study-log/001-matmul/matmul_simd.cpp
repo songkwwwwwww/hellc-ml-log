@@ -9,8 +9,6 @@ namespace matmul {
 
 namespace {
 
-constexpr int kTileSize = 88;
-
 /**
  * @brief SIMD (Single Instruction, Multiple Data) Micro-Kernel
  *
@@ -28,10 +26,10 @@ constexpr int kTileSize = 88;
  */
 inline void SimdTile(const double *A, const double *B, double *C, int size,
                      int row_block, int col_block, int inner_block) {
-  for (int row = 0; row < kTileSize; ++row) {
+  for (int row = 0; row < kDefaultTileSize; ++row) {
     const double *a_row = &A[(row_block + row) * size + inner_block];
     double *c_row = &C[(row_block + row) * size + col_block];
-    for (int inner = 0; inner < kTileSize; ++inner) {
+    for (int inner = 0; inner < kDefaultTileSize; ++inner) {
       const double a_val = a_row[inner];
       const double *b_row = &B[(inner_block + inner) * size + col_block];
 #if defined(__ARM_NEON)
@@ -39,7 +37,7 @@ inline void SimdTile(const double *A, const double *B, double *C, int size,
       const float64x2_t a_vec = vmovq_n_f64(a_val);
 
       // Process 2 elements at a time (128-bit / 64-bit = 2 lanes).
-      for (int col = 0; col < kTileSize; col += 2) {
+      for (int col = 0; col < kDefaultTileSize; col += 2) {
         float64x2_t b_vec = vld1q_f64(&b_row[col]);
         float64x2_t c_vec = vld1q_f64(&c_row[col]);
 
@@ -51,7 +49,7 @@ inline void SimdTile(const double *A, const double *B, double *C, int size,
       }
 #else
       // Fallback for non-NEON platforms
-      for (int col = 0; col < kTileSize; ++col) {
+      for (int col = 0; col < kDefaultTileSize; ++col) {
         c_row[col] += a_val * b_row[col];
       }
 #endif
@@ -70,12 +68,13 @@ void Simd(const double *A, const double *B, double *C, int rows, int columns,
   assert(rows == columns);
   assert(columns == inners);
   const int size = rows;
-  assert(size % kTileSize == 0);
+  assert(size % kDefaultTileSize == 0);
 
   // Outer loops for cache tiling
-  for (int row_block = 0; row_block < size; row_block += kTileSize) {
-    for (int inner_block = 0; inner_block < size; inner_block += kTileSize) {
-      for (int col_block = 0; col_block < size; col_block += kTileSize) {
+  for (int row_block = 0; row_block < size; row_block += kDefaultTileSize) {
+    for (int inner_block = 0; inner_block < size;
+         inner_block += kDefaultTileSize) {
+      for (int col_block = 0; col_block < size; col_block += kDefaultTileSize) {
         SimdTile(A, B, C, size, row_block, col_block, inner_block);
       }
     }

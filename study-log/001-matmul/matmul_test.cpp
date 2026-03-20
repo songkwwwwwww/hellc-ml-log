@@ -15,11 +15,11 @@ using namespace matmul;
 class MatmulTest : public ::testing::Test {
 protected:
   void SetUp() override {
-    // 352 = 88 * 4, so the simplified tile-based study variants can stay free
+    // 256 = 64 * 4, so the simplified tile-based study variants can stay free
     // of remainder-handling code while the test still runs quickly.
-    rows = 352;
-    columns = 352;
-    inners = 352;
+    rows = 256;
+    columns = 256;
+    inners = 256;
 
     // Allocate memory with proper alignment for SIMD testing
     A = AllocateAligned(rows * inners);
@@ -83,10 +83,10 @@ TEST_F(MatmulTest, PackedCorrectness) {
   EXPECT_TRUE(VerifyResults(C, refC, rows * columns));
 }
 
-TEST(MatmulOpenMpStudyTest, Fixed2024SquareMatrixCorrectness) {
-  constexpr int rows = 2024;
-  constexpr int columns = 2024;
-  constexpr int inners = 2024;
+TEST(MatmulOpenMpStudyTest, Fixed2048SquareMatrixCorrectness) {
+  constexpr int rows = 2048;
+  constexpr int columns = 2048;
+  constexpr int inners = 2048;
 
   double *A = AllocateAligned(rows * inners);
   double *B = AllocateAligned(inners * columns);

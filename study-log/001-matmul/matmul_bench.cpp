@@ -2,7 +2,6 @@
 #include "matrix_utils.h"
 #include <algorithm>
 #include <benchmark/benchmark.h>
-#include <vector>
 
 using namespace matmul;
 
@@ -55,11 +54,11 @@ static void BenchmarkMatmul(benchmark::State &state, MatmulFunc func,
 
 // Register benchmarks using a macro for convenience.
 // The study log currently compares all implementations on one fixed
-// 2024 x 2024 workload.
+// 2048 x 2048 workload.
 #define REGISTER_BENCHMARK(func, name)                                         \
   BENCHMARK_CAPTURE(BenchmarkMatmul, name, func, #name)                        \
       ->RangeMultiplier(2)                                                     \
-      ->Range(2024, 2024)                                                      \
+      ->Range(2048, 2048)                                                      \
       ->Unit(benchmark::kMillisecond);
 
 REGISTER_BENCHMARK(Naive, Naive);

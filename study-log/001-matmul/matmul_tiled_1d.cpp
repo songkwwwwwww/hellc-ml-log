@@ -4,12 +4,6 @@
 
 namespace matmul {
 
-namespace {
-
-constexpr int kTileSize = 88;
-
-} // namespace
-
 /**
  * @brief Tiled (Blocked) Matrix Multiplication
  *
@@ -32,9 +26,10 @@ void Tiled1D(const double *A, const double *B, double *C, int rows, int columns,
   assert(rows == columns);
   assert(columns == inners);
 
-  for (int inner_tile = 0; inner_tile < inners; inner_tile += kTileSize) {
+  for (int inner_tile = 0; inner_tile < inners;
+       inner_tile += kDefaultTileSize) {
     for (int row = 0; row < rows; row++) {
-      int inner_tile_end = std::min(inners, inner_tile + kTileSize);
+      int inner_tile_end = std::min(inners, inner_tile + kDefaultTileSize);
       for (int inner = inner_tile; inner < inner_tile_end; inner++) {
         double a = A[row * inners + inner];
         for (int column = 0; column < columns; column++) {
