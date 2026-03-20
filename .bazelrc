@@ -1,6 +1,6 @@
-# Standard C++17 configuration
-build --cxxopt=-std=c++17
-build --host_cxxopt=-std=c++17
+# Standard C++23 configuration
+build --cxxopt=-std=c++23
+build --host_cxxopt=-std=c++23
 
 # Display color in the terminal
 common --color=yes
