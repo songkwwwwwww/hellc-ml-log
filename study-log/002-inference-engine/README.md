@@ -1,6 +1,6 @@
 # 002: Learning Inference Engine
 
-`study-log/002-inference-engine` is a space to analyze `third_party/inference_engine` and newly implement an inference engine for learning purposes within the same monorepo.
+`study-log/002-inference-engine` is a space to analyze [C++ Inference Engine from scratch, MichalPitr](https://github.com/MichalPitr/inference_engine) and newly implement an inference engine for learning purposes within the same monorepo.
 
 The three core goals are:
 
@@ -14,7 +14,7 @@ The starting point should be a `design doc` rather than implementation. Especial
 
 The recommended reading order is as follows:
 
-1. Quickly grasp the reference engine structure with the `third_party/inference_engine` analysis documents.
+1. Quickly grasp the reference engine structure with the [C++ Inference Engine from scratch, MichalPitr](https://github.com/MichalPitr/inference_engine) analysis documents.
 2. Confirm the scope, layers, and implementation order with the new learning engine design document.
 3. Then, create the Bazel targets and a minimal CPU-only execution path.
 
@@ -25,16 +25,16 @@ The recommended reading order is as follows:
 3. Add `Conv` and `MaxPool` with `mnist_conv_ffn.onnx`.
 4. Then, attach a memory planner, simple graph optimization, and an accelerator provider.
 
-By following this order, we can naturally increase the learning difficulty while fully reusing the assets (models and input data) from `third_party/inference_engine`.
+By following this order, we can naturally increase the learning difficulty while fully reusing the assets (models and input data) from [C++ Inference Engine from scratch, MichalPitr](https://github.com/MichalPitr/inference_engine)(i.e., inference_engine).
 
 ## Assets to Reuse
 
 - Models:
-  - `third_party/inference_engine/models/mnist_ffn.onnx`
-  - `third_party/inference_engine/models/mnist_ffn_complex.onnx`
-  - `third_party/inference_engine/models/mnist_conv_ffn.onnx`
+  - `inference_engine/models/mnist_ffn.onnx`
+  - `inference_engine/models/mnist_ffn_complex.onnx`
+  - `inference_engine/models/mnist_conv_ffn.onnx`
 - Inputs:
-  - `third_party/inference_engine/inputs/image_*.ubyte`
+  - `inference_engine/inputs/image_*.ubyte`
 
 ## Immediate Tasks for the Next Implementation
 
