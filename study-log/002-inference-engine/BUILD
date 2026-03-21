@@ -1,7 +1,34 @@
+load("@protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
+load("@protobuf//bazel:proto_library.bzl", "proto_library")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 
 # ------------------------------------------------------------------------------
-# core: IR layer - TensorDesc, Tensor, Node, Graph, OpType
+# onnx_proto: ONNX protobuf schema used by OnnxLoader (v1)
+# ------------------------------------------------------------------------------
+proto_library(
+    name = "onnx_proto",
+    srcs = ["src/loader/onnx-ml.proto"],
+)
+
+cc_proto_library(
+    name = "onnx_cc_proto",
+    deps = [":onnx_proto"],
+)
+
+# ------------------------------------------------------------------------------
+# memory: Allocator abstract interface + CpuAllocator
+# ------------------------------------------------------------------------------
+cc_library(
+    name = "memory",
+    srcs = ["src/memory/cpu_allocator.cpp"],
+    hdrs = [
+        "src/memory/allocator.h",
+        "src/memory/cpu_allocator.h",
+    ],
+)
+
+# ------------------------------------------------------------------------------
+# core: IR layer - TensorDesc, Tensor, TensorStore, Node, Graph, OpType
 # ------------------------------------------------------------------------------
 cc_library(
     name = "core",
@@ -23,19 +50,7 @@ cc_library(
 )
 
 # ------------------------------------------------------------------------------
-# memory: Allocator abstract interface + CpuAllocator
-# ------------------------------------------------------------------------------
-cc_library(
-    name = "memory",
-    srcs = ["src/memory/cpu_allocator.cpp"],
-    hdrs = [
-        "src/memory/allocator.h",
-        "src/memory/cpu_allocator.h",
-    ],
-)
-
-# ------------------------------------------------------------------------------
-# kernels_cpu: Kernel interface, KernelRegistry, CPU kernel implementation
+# kernels_cpu: Kernel interface, KernelRegistry, CPU kernel implementations
 # ------------------------------------------------------------------------------
 cc_library(
     name = "kernels_cpu",
@@ -56,7 +71,24 @@ cc_library(
 )
 
 # ------------------------------------------------------------------------------
-# runtime: TensorStore, ExecutionPlan, EngineBuilder, Engine, Session
+# providers_cpu: CpuExecutionProvider
+# ------------------------------------------------------------------------------
+cc_library(
+    name = "providers_cpu",
+    srcs = ["src/providers/cpu_execution_provider.cpp"],
+    hdrs = [
+        "src/providers/cpu_execution_provider.h",
+        "src/providers/execution_provider.h",
+    ],
+    deps = [
+        ":core",
+        ":kernels_cpu",
+        ":memory",
+    ],
+)
+
+# ------------------------------------------------------------------------------
+# runtime: EngineBuilder, Engine, Session, ExecutionPlan
 # ------------------------------------------------------------------------------
 cc_library(
     name = "runtime",
@@ -78,24 +110,7 @@ cc_library(
 )
 
 # ------------------------------------------------------------------------------
-# providers_cpu: CpuExecutionProvider
-# ------------------------------------------------------------------------------
-cc_library(
-    name = "providers_cpu",
-    srcs = ["src/providers/cpu_execution_provider.cpp"],
-    hdrs = [
-        "src/providers/cpu_execution_provider.h",
-        "src/providers/execution_provider.h",
-    ],
-    deps = [
-        ":core",
-        ":kernels_cpu",
-        ":memory",
-    ],
-)
-
-# ------------------------------------------------------------------------------
-# loader: OnnxLoader (M1), MnistInputLoader (M1)
+# loader: OnnxLoader (protobuf-based), MnistInputLoader
 # ------------------------------------------------------------------------------
 cc_library(
     name = "loader",
@@ -107,15 +122,22 @@ cc_library(
         "src/loader/mnist_input_loader.h",
         "src/loader/onnx_loader.h",
     ],
-    deps = [":core"],
+    deps = [
+        ":core",
+        ":onnx_cc_proto",
+    ],
 )
 
 # ------------------------------------------------------------------------------
-# mnist_runner: CLI binary (M1)
+# mnist_runner: End-to-end CLI binary (M1)
 # ------------------------------------------------------------------------------
 cc_binary(
     name = "mnist_runner",
     srcs = ["tools/mnist_runner_main.cpp"],
+    data = [
+        "//third_party/inference_engine/inputs:test_images",
+        "//third_party/inference_engine/models:mnist_models",
+    ],
     deps = [
         ":loader",
         ":runtime",
@@ -123,17 +145,25 @@ cc_binary(
 )
 
 # ------------------------------------------------------------------------------
-# inference_engine_test: Unit tests
+# inference_engine_test: Unit + integration tests
 # ------------------------------------------------------------------------------
 cc_test(
     name = "inference_engine_test",
     srcs = [
+        "tests/e2e_mnist_test.cpp",
         "tests/graph_test.cpp",
+        "tests/kernel_test.cpp",
         "tests/tensor_test.cpp",
+    ],
+    data = [
+        "//third_party/inference_engine/inputs:test_images",
+        "//third_party/inference_engine/models:mnist_models",
     ],
     deps = [
         ":core",
+        ":loader",
         ":memory",
+        ":runtime",
         "@googletest//:gtest_main",
     ],
 )

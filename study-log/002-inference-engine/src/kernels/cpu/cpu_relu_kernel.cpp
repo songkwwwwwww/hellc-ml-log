@@ -1,14 +1,19 @@
 #include "cpu_relu_kernel.h"
 
-#include <stdexcept>
+#include <algorithm>
 
 namespace tie {
 
-// TODO(M1): Implement element-wise max(0, x).
-void CpuReluKernel::Compute(const std::vector<const Tensor*>& /*inputs*/,
-                             const std::vector<Tensor*>& /*outputs*/,
+// ONNX Relu: Y = max(0, X), element-wise
+void CpuReluKernel::Compute(const std::vector<const Tensor*>& inputs,
+                             const std::vector<Tensor*>& outputs,
                              const AttributeMap& /*attrs*/) {
-  throw std::runtime_error("CpuReluKernel: not implemented yet (M1)");
+  const float* in = inputs[0]->data_as<float>();
+  float* out = outputs[0]->data_as<float>();
+  const int64_t n = inputs[0]->NumElements();
+  for (int64_t i = 0; i < n; ++i) {
+    out[i] = std::max(0.0f, in[i]);
+  }
 }
 
 }  // namespace tie

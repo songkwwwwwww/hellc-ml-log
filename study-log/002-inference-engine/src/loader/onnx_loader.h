@@ -10,14 +10,15 @@ namespace tie {
 
 struct ModelData {
   Graph graph;
-  std::unordered_map<std::string, Tensor> weights;  // Initializer tensors
+  // Weight tensors loaded from ONNX initializers.
+  // Bind all of these into the Session before calling Run().
+  std::unordered_map<std::string, Tensor> weights;
 };
 
-// Protobuf-based ONNX loader (M1 implementation pending).
-// Parses a .onnx file and returns a Graph and weight tensors.
+// Protobuf-based ONNX loader (v1).
+// Parses a .onnx file and returns the computation graph and weight tensors.
 class OnnxLoader {
  public:
-  // TODO(M1): Implementation pending.
   static ModelData Load(const std::string& path, Allocator* allocator);
 };
 

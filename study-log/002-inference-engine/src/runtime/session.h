@@ -1,10 +1,10 @@
 #pragma once
 
 #include <string>
-#include <unordered_map>
 
 #include "../core/tensor.h"
 #include "../core/tensor_store.h"
+#include "../memory/allocator.h"
 
 namespace tie {
 
@@ -14,19 +14,21 @@ class Engine;
 // Executes the ExecutionPlan held by the Engine in order.
 class Session {
  public:
-  explicit Session(Engine* engine);
+  Session(const Engine* engine, Allocator* allocator);
 
-  // Bind input tensor by name.
+  // Bind a tensor (input data or pre-loaded weight) by name.
   void BindInput(const std::string& name, Tensor tensor);
 
   // Execute the ExecutionPlan in order.
+  // Output tensors are pre-allocated from each PlanStep's output_descs.
   void Run();
 
   // Retrieve output tensor by name.
   const Tensor& GetOutput(const std::string& name) const;
 
  private:
-  Engine* engine_;
+  const Engine* engine_;
+  Allocator* allocator_;
   TensorStore store_;
 };
 

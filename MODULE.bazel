@@ -12,7 +12,7 @@ bazel_dep(name = "platforms", version = "1.0.0")
 
 bazel_dep(name = "google_benchmark", version = "1.9.5", dev_dependency = True)
 bazel_dep(name = "googletest", version = "1.17.0", dev_dependency = True)
-bazel_dep(name = "protobuf", version = "29.3")
+bazel_dep(name = "protobuf", version = "34.0.bcr.1")
 
 bazel_dep(name = "rules_python", version = "1.5.4")
 
