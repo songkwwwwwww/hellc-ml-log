@@ -38,7 +38,8 @@ void CpuExecutionProvider::Execute(const Node& node, TensorStore& store) {
 
   std::vector<const Tensor*> inputs;
   for (const auto& name : node.inputs) {
-    inputs.push_back(store.Get(name));
+    // Empty name means the optional input is absent (ONNX convention).
+    inputs.push_back(name.empty() ? nullptr : store.Get(name));
   }
 
   std::vector<Tensor*> outputs;
