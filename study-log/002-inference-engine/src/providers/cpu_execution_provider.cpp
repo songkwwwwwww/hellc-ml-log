@@ -1,5 +1,6 @@
 #include "cpu_execution_provider.h"
 
+#include "../kernels/cpu/cpu_add_kernel.h"
 #include "../kernels/cpu/cpu_flatten_kernel.h"
 #include "../kernels/cpu/cpu_gemm_kernel.h"
 #include "../kernels/cpu/cpu_relu_kernel.h"
@@ -17,6 +18,8 @@ CpuExecutionProvider::CpuExecutionProvider() {
                      [] { return std::make_unique<CpuGemmKernel>(); });
   registry_.Register(OpType::kRelu, cpu, f32,
                      [] { return std::make_unique<CpuReluKernel>(); });
+  registry_.Register(OpType::kAdd, cpu, f32,
+                     [] { return std::make_unique<CpuAddKernel>(); });
 }
 
 bool CpuExecutionProvider::CanHandle(const Node& node) const {

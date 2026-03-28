@@ -55,12 +55,14 @@ cc_library(
 cc_library(
     name = "kernels_cpu",
     srcs = [
+        "src/kernels/cpu/cpu_add_kernel.cpp",
         "src/kernels/cpu/cpu_flatten_kernel.cpp",
         "src/kernels/cpu/cpu_gemm_kernel.cpp",
         "src/kernels/cpu/cpu_relu_kernel.cpp",
         "src/kernels/kernel_registry.cpp",
     ],
     hdrs = [
+        "src/kernels/cpu/cpu_add_kernel.h",
         "src/kernels/cpu/cpu_flatten_kernel.h",
         "src/kernels/cpu/cpu_gemm_kernel.h",
         "src/kernels/cpu/cpu_relu_kernel.h",
