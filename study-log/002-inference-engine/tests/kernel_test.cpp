@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "../src/kernels/cpu/cpu_add_kernel.h"
 #include "../src/kernels/cpu/cpu_flatten_kernel.h"
 #include "../src/kernels/cpu/cpu_gemm_kernel.h"
 #include "../src/kernels/cpu/cpu_relu_kernel.h"
@@ -88,6 +89,44 @@ TEST(CpuGemmKernelTest, TransBWithBias) {
   const float* y = Y.data_as<float>();
   EXPECT_FLOAT_EQ(y[0], 11.0f);
   EXPECT_FLOAT_EQ(y[1], 22.0f);
+}
+
+// ── Add ──────────────────────────────────────────────────────────────────────
+
+TEST(CpuAddKernelTest, ElementWiseAdd) {
+  CpuAllocator alloc;
+  Tensor a = MakeTensor({4}, {1.0f, -2.0f, 3.5f, 0.0f}, &alloc);
+  Tensor b = MakeTensor({4}, {0.5f, 2.0f, -1.5f, 4.0f}, &alloc);
+  TensorDesc out_desc{"", {4}, DataType::kFloat32};
+  Tensor out(out_desc, &alloc);
+
+  CpuAddKernel kernel;
+  kernel.Compute({&a, &b}, {&out}, {});
+
+  const float* y = out.data_as<float>();
+  EXPECT_FLOAT_EQ(y[0], 1.5f);
+  EXPECT_FLOAT_EQ(y[1], 0.0f);
+  EXPECT_FLOAT_EQ(y[2], 2.0f);
+  EXPECT_FLOAT_EQ(y[3], 4.0f);
+}
+
+TEST(CpuAddKernelTest, Matrix2D) {
+  CpuAllocator alloc;
+  Tensor a = MakeTensor({2, 3}, {1, 2, 3, 4, 5, 6}, &alloc);
+  Tensor b = MakeTensor({2, 3}, {10, 20, 30, 40, 50, 60}, &alloc);
+  TensorDesc out_desc{"", {2, 3}, DataType::kFloat32};
+  Tensor out(out_desc, &alloc);
+
+  CpuAddKernel kernel;
+  kernel.Compute({&a, &b}, {&out}, {});
+
+  const float* y = out.data_as<float>();
+  EXPECT_FLOAT_EQ(y[0], 11.0f);
+  EXPECT_FLOAT_EQ(y[1], 22.0f);
+  EXPECT_FLOAT_EQ(y[2], 33.0f);
+  EXPECT_FLOAT_EQ(y[3], 44.0f);
+  EXPECT_FLOAT_EQ(y[4], 55.0f);
+  EXPECT_FLOAT_EQ(y[5], 66.0f);
 }
 
 // ── Flatten ───────────────────────────────────────────────────────────────────
