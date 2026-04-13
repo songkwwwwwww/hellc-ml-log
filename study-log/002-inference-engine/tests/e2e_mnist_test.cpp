@@ -14,11 +14,11 @@ namespace tie {
 
 // Bazel runs tests from the workspace root, so paths are relative to it.
 static constexpr const char* kModelPath =
-    "third_party/inference_engine/models/mnist_ffn.onnx";
+    "study-log/002-inference-engine/data/models/mnist_ffn.onnx";
 static constexpr const char* kComplexModelPath =
-    "third_party/inference_engine/models/mnist_ffn_complex.onnx";
+    "study-log/002-inference-engine/data/models/mnist_ffn_complex.onnx";
 static constexpr const char* kInputPath =
-    "third_party/inference_engine/inputs/image_0.ubyte";
+    "study-log/002-inference-engine/data/inputs/image_0.ubyte";
 
 TEST(E2EMnistTest, ModelLoadsSuccessfully) {
   CpuAllocator alloc;

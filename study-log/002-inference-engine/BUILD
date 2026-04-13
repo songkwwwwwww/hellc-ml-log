@@ -131,14 +131,27 @@ cc_library(
 )
 
 # ------------------------------------------------------------------------------
+# data: ONNX models and MNIST test images
+# ------------------------------------------------------------------------------
+filegroup(
+    name = "mnist_models",
+    srcs = glob(["data/models/*.onnx"]),
+)
+
+filegroup(
+    name = "test_images",
+    srcs = glob(["data/inputs/*.ubyte"]),
+)
+
+# ------------------------------------------------------------------------------
 # mnist_runner: End-to-end CLI binary (M1)
 # ------------------------------------------------------------------------------
 cc_binary(
     name = "mnist_runner",
     srcs = ["tools/mnist_runner_main.cpp"],
     data = [
-        "//third_party/inference_engine/inputs:test_images",
-        "//third_party/inference_engine/models:mnist_models",
+        ":mnist_models",
+        ":test_images",
     ],
     deps = [
         ":loader",
@@ -158,8 +171,8 @@ cc_test(
         "tests/tensor_test.cpp",
     ],
     data = [
-        "//third_party/inference_engine/inputs:test_images",
-        "//third_party/inference_engine/models:mnist_models",
+        ":mnist_models",
+        ":test_images",
     ],
     deps = [
         ":core",
