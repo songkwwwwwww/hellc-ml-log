@@ -12,8 +12,9 @@
 
 int main(int argc, char **argv) {
   const std::string model_path =
-      argc > 1 ? argv[1]
-               : "study-log/002-inference-engine/data/models/mnist_ffn.onnx";
+      argc > 1
+          ? argv[1]
+          : "study-log/002-inference-engine/data/models/mnist_ffn_complex.onnx";
   const std::string input_path =
       argc > 2 ? argv[2]
                : "study-log/002-inference-engine/data/inputs/image_0.ubyte";
